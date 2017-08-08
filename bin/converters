@@ -1,0 +1,20 @@
+
+#to record a sound output from alsa of any device
+#pactl list
+#pactl list | grep -A2 'Source #' | grep 'Name: .*\.monitor$' | cut -d  -f2
+PULSE_SOURCE=alsa_output.pci_8086_284b_sound_card_0_alsa_playback_0.monitor arecord --format=S16_LE --rate=44100 --channels=2 output.wav
+
+
+# convert from ogv to avi
+ffmpeg -i s.ogv  -f avi -vcodec mpeg2 -b 800k -g 300 -bf 2 -acodec libmp3lame -ab 128k snatch.avi
+
+# convert from omg to flv
+#mencoder s.omg -of lavf -ovc lavc -lavcopts vcodec=flv:vbitrate=150 -ofps 25 -oac mp3lame -lameopts abr:br=32 -srate 22050 -vf scale=720 -o outputfile.flv
+
+#encode youtube style video
+ffmpeg -i test-0000.mpeg -c:v libx264 -preset slow -crf 18 -c:a copy -pix_fmt yuv420p output.mp4
+
+
+#xvidcap - capture screencast with sound
+padsp xvidcap # select the window
+pavucontrol # run this after started recording and select the input device

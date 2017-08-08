@@ -1,0 +1,1 @@
+ffmpeg -i *.AVI -ab 128k -ar 44100 -b:v 1200k -vc h264 -qscale 1 -s 480x360 foo.flv

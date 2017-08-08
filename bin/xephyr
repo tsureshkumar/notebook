@@ -1,0 +1,4 @@
+#!/bin/bash
+Xephyr -keybd ephyr,,,xkbmodel=evdev,xkblayout=de -ac -reset -screen 800x600 -retro :2 &
+sleep 1s;
+xmodmap -pke > /tmp/my_modmap ; xterm -display :2 -ls -e "xmodmap /tmp/my_modmap; bash" &

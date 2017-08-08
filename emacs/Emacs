@@ -1,0 +1,9 @@
+//emacs*font: -monotype-andale mono-medium-r-*-*-18-*-*-*-*-*-iso8859-1
+//emacs*Foreground: ivory
+//emacs*Background: DimGray
+//emacs.pointerColor: Lavender
+//emacs.cursorColor: Lavender
+
+emacs.menuBar:              off
+emacs.toolBar:              off
+emacs.verticalScrollBars:   off

@@ -1,0 +1,11 @@
+#/bin/bash
+
+echo '{ "args" : ['
+test $# -gt 0 && echo '"'$1'"'
+shift;
+for i in $*
+do
+	echo ', $"'$i'"'
+done
+echo '] }'
+  

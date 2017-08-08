@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ "x$1" = "xclear" ]
+then
+	iptables -F  || ::
+	iptables -F -t nat || ::
+	exit
+fi
+
+inf=$1;shift
+outf=$1;shift
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+/sbin/iptables -t nat -A POSTROUTING -o $outf -j MASQUERADE
+/sbin/iptables -A FORWARD -i $inf -o $outf -m state --state RELATED,ESTABLISHED -j ACCEPT
+/sbin/iptables -A FORWARD -i $inf -o $outf -j ACCEPT

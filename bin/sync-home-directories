@@ -1,0 +1,87 @@
+#! /bin/bash
+
+o_syncfile=~/notebook/bin/syncfiles
+src_home=~/../tsureshkumar2
+dst_home=~
+
+usage ()
+{
+    echo "Usage: $0 [-f <items_to_sync>] <fromdir> <todir>";
+    echo ;
+}
+
+parse_cmd_line ()
+{
+    while getopts f:h args
+      do
+      case "$args" in
+          f)     shift; o_syncfile=$OPTARG; shift ;;
+          [?h]) 
+                 usage;
+                 exit 1;;
+      esac
+      done
+
+    if [ $# -lt 2 ]; then
+        usage;
+        exit 1;
+    fi
+    src_home=$1
+    shift
+    dst_home=$1
+    shift
+}
+
+sync_files () 
+{
+    local section=file
+    printbold "Syncing between $src_home to $dst_home"
+
+    printbold "INFO: using sync file '$o_syncfile'."
+
+    while read line
+    do
+      [ "$line" = "" ] && continue
+      case "$line" in
+          \;*) continue;;
+      esac
+      if [[ "$line" =~ "\[(.*)\]" ]]; then
+          section=${BASH_REMATCH[1]}
+          continue
+      fi
+      printbold "rsync -avcz $src_home/$line $dst_home/$line "
+      if [ "$section" = "directories" ]; then
+          rsync -avcz $src_home/$line/ $dst_home/$line/
+      else
+          rsync -avcz $src_home/$line $dst_home/$line
+      fi
+   done <  $o_syncfile
+}
+
+main () 
+{
+    parse_cmd_line $*
+    sync_files
+    echo "done."
+}
+
+# some terminal codes ...
+boldface="`tput bold 2>/dev/null`"
+normal="`tput sgr0 2>/dev/null`"
+redface="`tput setf 4 2>/dev/null`"
+blueface="`tput setf 1 2>/dev/null`"
+printbold () {
+    echo $ECHO_N "$boldface"
+    echo $ECHO_N "$blueface"
+    echo "$@"
+    echo $ECHO_N "$normal"
+}
+printerr () {
+    echo $ECHO_N "$redface"
+    echo "$@" >&2
+    echo $ECHO_N "$normal"
+}
+
+
+main $*;
+

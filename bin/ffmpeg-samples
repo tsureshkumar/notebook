@@ -1,0 +1,14 @@
+# rotating
+ffmpeg -vf "rotate=90" -i 20130423_002211.mp4 s.flv
+
+# cropping
+ffmpeg -i mobile.mp4 -vf crop=in_w:in_h-400:0:300 mobile2.mp4
+
+# adding subtitle
+ffmpeg -i mobile.srt mobile.ass
+ffmpeg -i mobile2.mp4 -vf "ass=mobile.ass" mobile4.mp4 
+
+#subtitle file format
+1
+00:00:02,000 --> 00:00:14,000
+Opening IDP Login from a mobile

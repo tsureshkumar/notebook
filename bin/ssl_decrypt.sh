@@ -1,0 +1,2 @@
+tshark -n -o "ssl.desegment_ssl_records: TRUE" -o "ssl.desegment_ssl_application_data: TRUE" -o "ssl.keys_list:172.31.1.10,443,data,/tmp/s.pem" -o "ssl.debug_file:SSL-Decrypt.log" -r magtrace.cap -R "(tcp.port eq 443)" -T fields -e data.data | xxd -p -r 
+tshark -n -o "ssl.desegment_ssl_records: TRUE" -o "ssl.desegment_ssl_application_data: TRUE" -o "ssl.keys_list:172.31.1.10,443,data,/tmp/s.pem" -o "ssl.debug_file:SSL-Decrypt.log" -r magtrace.cap -R "(tcp.port eq 443)" -T fields -e data.data | xxd -p -r 

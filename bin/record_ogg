@@ -1,0 +1,3 @@
+#!/bin/bash
+
+arecord -f cd -t raw | oggenc - -r -o $1

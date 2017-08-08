@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use URI::Escape;
+use HTML::Entities;
+
+$|++;
+
+while(<>) {
+   print decode_entities($_);
+}
+print "\n"

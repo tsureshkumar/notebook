@@ -1,0 +1,6 @@
+# follow link http://www.andreybutov.com/2011/10/14/how-to-set-up-a-faster-android-emulator/
+# to setup android x86 in virtual box
+# and select nat for networking option
+
+# run the following to allow adb to connect to natted port
+VBoxManage modifyvm android23 --natpf1 adb,tcp,*,5555,*,5555

@@ -1,0 +1,10 @@
+CC=g++
+CFLAGS=-g -O0
+CPPFLAGS=-g -O0
+
+%.o: %.cpp
+	    $(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+
+% : %.o
+		$(CC) -o $@ $<
+

@@ -1,0 +1,12 @@
+
+xmonad.hs:61:1: error:
+    • Variable not in scope: myConfig
+    • Perhaps you meant data constructor ‘XConfig’ (imported from XMonad)
+
+xmonad.hs:61:10: error:
+    • Variable not in scope:
+        (--=)
+          :: t0
+             -> XConfig (Choose Tall (Choose (Mirror Tall) Full))
+             -> Language.Haskell.TH.Lib.DecsQ
+    • Perhaps you meant ‘-->’ (imported from XMonad)

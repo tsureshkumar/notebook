@@ -1,0 +1,8 @@
+#!/bin/bash
+
+arg=$1
+shift
+
+name=`basename $arg .mov`
+
+ffmpeg -i $arg  -ab 72k -s qcif -aspect 16:9 -vcodec libx264 -b 300k -qcomp 0.6 -qmin 16 -qmax 51 -qdiff 4 -flags +loop -cmp +chroma -subq 7 -refs 6 -g 250 -keyint_min 25 -rc_eq 'blurCplx^(1-qComp)' -sc_threshold 40 -me_range 12 -i_qfactor 0.71 -directpred 3 $name.mp4

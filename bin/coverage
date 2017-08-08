@@ -1,0 +1,29 @@
+#!/bin/sh
+
+which lcov 1>/dev/null 2>&1
+if [ $? != 0 ]
+then
+    echo "You need to have lcov installed in order to generate the test coverage report"
+    exit 1
+fi
+
+cmd=$1
+out=$2
+
+echo -n "Will execute '$cmd' and then generate coverage data in dir '$out' after removing it. Do you want to continue? : " && read yes
+[ "$yes" = "no" -o "$yes" = "NO" ] && exit 1
+
+lcov --base-directory . --directory . --zerocounters -q
+echo "Executing command '$cmd'... "
+$cmd
+lcov --base-directory . --directory . -c -o test.info
+lcov --remove test.info "/usr*" -o test.info # remove output for external libraries
+
+echo -n "Going to delete the directory to generate coverage html [$out], enter no for exit :" && read yes
+echo $yes
+[ "$yes" = "no" -o "$yes" = "NO" ] && exit 1
+
+rm -rf $out
+genhtml -o $out -t "test coverage" --num-spaces 4 test.info
+
+firefox $out/index.html &

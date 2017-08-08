@@ -1,0 +1,78 @@
+#! /usr/bin/ruby
+
+require 'rubygems'
+gem 'libxml-ruby'
+gem 'happymapper'
+require 'libxml'
+require 'happymapper'
+
+filename = ARGV[0]
+command = ARGV[1]
+puts "commad is #{command}"
+
+if (command == "budget") 
+	subcommand = ARGV[2];
+	name = ARGV[3];
+	month = ARGV[4].to_i;
+	idx = month <= 3 ? 8 + month : month - 4;
+	amount = ARGV[5];
+
+        xml = File.read(filename);
+        doc = xml.to_libxml_doc
+        root = doc.root
+
+	# get uniq guid based on parent types and name
+	names = name.split(/\$/);
+	if names.length == 1
+		name_node = root.find_first(".//gnc:account[act:name='#{name}']");
+		id = name_node.find_first(".//act:id[@type='guid']").content	
+	else
+		parent = nil
+		names.each { |name|
+			if (!parent)
+				puts "finding #{name}"
+				name_node = root.find_first(".//gnc:account[act:name='#{name}']");
+				parent = id = name_node.find_first(".//act:id[@type='guid']").content	
+			else
+				puts "finding #{name} with parent #{parent}"
+				name_node = root.find_first(".//gnc:account[act:name='#{name}'][act:parent[@type='guid']='#{parent}']");
+				parent = id = name_node.find_first(".//act:id[@type='guid']").content	
+			end
+		}
+	end
+
+	puts "id is #{id}";
+	budget_slot_node = root.find_first(".//gnc:budget/bgt:slots/slot[slot:key='#{id}']");
+	value_node = budget_slot_node.find_first(".//slot:value");	
+	slot_node = value_node.find_first(".//slot[slot:key='#{idx}']");	
+	if (value_node && slot_node) 
+		value_node = slot_node.find_first(".//slot:value");
+		value_node.content = "#{amount}/1";
+	else
+		slot_str = <<ENDN
+<slot>
+  <slot:key>#{idx}</slot:key>
+  <slot:value type="numeric">#{amount}/1</slot:value>
+</slot>
+ENDN
+		#slot_node = slot_str.to_libxml_doc.root
+
+		if (! value_node)
+			#troot = "<slot:value/>".to_libxml_doc.root;
+			#value_node = troot;
+			#budget_slot_node << value_node.copy(true);
+			#budget_slot_node << "<slot:value/>";
+			#value_node = budget_slot_node.find_first(".//slot:value");	
+			value_node = XML::Node.new ("slot:value")
+		end
+		#value_node << slot_node.copy(true);
+		#value_node << slot_str;
+		slot_node = XML::Node.new("slot") 
+		slot_node << (XML::Node.new("slot:key")  << idx)
+		v_node = XML::Node.new("slot:value") << "#{amount}/1"
+		v_node["type"] = "numeric"
+		slot_node << v_node
+		value_node << slot_node
+	end
+	doc.save("book", :indent => true);
+end

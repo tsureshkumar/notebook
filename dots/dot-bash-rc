@@ -1,0 +1,201 @@
+# Sample .bashrc for SuSE Linux
+# Copyright (c) SuSE GmbH Nuernberg
+
+# There are 3 different types of shells in bash: the login shell, normal shell
+# and interactive shell. Login shells read ~/.profile and interactive shells
+# read ~/.bashrc; in our setup, /etc/profile sources ~/.bashrc - thus all
+# settings made here will also take effect in a login shell.
+#
+# NOTE: It is recommended to make language settings in ~/.profile rather than
+# here, since multilingual X sessions would not work properly if LANG is over-
+# ridden in every subshell.
+
+# Some applications read the EDITOR variable to determine your favourite text
+# editor. So uncomment the line below and enter the editor of your choice :-)
+#export EDITOR=/usr/bin/vim
+#export EDITOR=/usr/bin/mcedit
+
+# For some news readers it makes sense to specify the NEWSSERVER variable here
+#export NEWSSERVER=your.news.server
+
+# If you want to use a Palm device with Linux, uncomment the two lines below.
+# For some (older) Palm Pilots, you might need to set a lower baud rate
+# e.g. 57600 or 38400; lowest is 9600 (very slow!)
+#
+#export PILOTPORT=/dev/pilot
+#export PILOTRATE=115200
+
+export HISTSIZE=10000
+
+test -s ~/.alias && . ~/.alias || true
+test -s ~/my/notebook/.sureshrc && . ~/my/notebook/.sureshrc || true
+shopt -s histappend # append history instead of overwriting
+PROMPT_COMMAND='history -a'
+
+export PATH=~/my/notebook/bin:$PATH
+export PATH=~/my/notebook/bin:~/bin:$PATH
+
+
+function sdiff {
+	command diff -pNaur "$@"
+}
+export -f sdiff
+
+JAVA_HOME=/opt/java/jdk1.8.0_121/
+export PATH=$JAVA_HOME/bin:$PATH
+alias gam="git status . | grep modified | sed -e s\\/\#\\\\s*modified:\\\\s*\\/\\/g | xargs -i git add {}"
+alias gs="git status ."
+alias gc="git commit"
+alias gcp="git commit -c HEAD"
+alias gp="git cherry-pick "
+alias gd="git diff ."
+alias gsvndc="git svn dcommit"
+alias gb="git branch"
+alias gout="git checkout "
+alias gkall="gitk --all "
+alias gk="gitk"
+alias vi="gvim -v"
+alias sdocker="sudo docker"
+
+export ALTERNATE_EDITOR=""
+alias svndiff="svn diff --diff-cmd diff -x -uwp "
+function svnlog_changeset {
+	local r=$1
+	local url=$2
+	svn log -c $r --diff --diff-cmd diff -x -uwp "$url"
+}
+
+function gadd_modifed {
+	"git status . | grep modified | awk '{print $3}' | xargs -i git add {}"
+}
+
+function today {
+   date +%Y%m%d
+}
+useragent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.1 Safari/537.17"
+
+
+# Another version doing the octal conversion with arithmetic
+# faster as it avoids a subshell
+chr () {
+  [ ${1} -lt 256 ] || return 1
+  printf \\$(($1/64*100+$1%64/8*10+$1%8))
+}
+
+ord() {
+  LC_CTYPE=C printf '%d' "'$1"
+}
+
+# hex() - converts ASCII character to a hexadecimal value
+# unhex() - converts a hexadecimal value to an ASCII character
+
+hex() {
+   LC_CTYPE=C printf '%x' "'$1"
+}
+
+unhex() {
+   printf \\x"$1"
+}
+
+make_dir_complete() {
+    local aliasname=$1
+    local dirname=$(readlink -f $2)
+    local prgname="__s_${aliasname}__"
+    FUNC="function $prgname() {
+        local cur len wrkdir;
+        local IFS=\$'\\n'
+        wrkdir=\"$dirname\"
+        cur=\${COMP_WORDS[COMP_CWORD]};
+        len=\$((\${#wrkdir} + 2));
+        COMPREPLY=( \$(compgen -S/ -d \$wrkdir/\$cur| cut -b \$len-) );
+    }"
+    ALIAS="$aliasname () { cd \"$dirname/\$*\"; }"
+    eval $FUNC
+    eval $ALIAS
+    complete -o nospace -F $prgname $aliasname
+}
+
+make_dir_complete source  ~/my/source
+
+function _svnurlcomplete_()
+{
+    local cmd="${1##*/}"
+    local word=${COMP_WORDS[COMP_CWORD]}
+    local line=${COMP_LINE}
+    local xpat='!*.foo'
+
+    case "$word" in
+    trunk*)
+		url=https://svn.com/svn/x/trunk	
+		;;
+    esac
+
+    COMPREPLY=($(compgen -W "${url}" ))
+}
+
+complete -d -F _svnurlcomplete_ svn
+
+
+alias rfind="find . -iname "
+
+# ghc-pkg-reset
+# Removes all installed GHC/cabal packages, but not binaries, docs, etc.
+# Use this to get out of dependency hell and start over, at the cost of some rebuilding time.
+function ghc-pkg-reset() {
+    read -p 'erasing all your user ghc and cabal packages - are you sure (y/n) ? ' ans
+    test x$ans == xy && ( \
+        echo 'erasing directories under ~/.ghc'; rm -rf `find ~/.ghc -maxdepth 1 -type d`; \
+        echo 'erasing ~/.cabal/lib'; rm -rf ~/.cabal/lib; \
+        # echo 'erasing ~/.cabal/packages'; rm -rf ~/.cabal/packages; \
+        # echo 'erasing ~/.cabal/share'; rm -rf ~/.cabal/share; \
+        )
+}
+
+
+ANT_OPTS="-Dfile.encoding=ISO-8859-1 -Djavax.xml.accessExternalDTD=all -Djavax.xml.accessExternalSchema=all"
+
+
+unset HISTFILESIZE
+export HISTSIZE=10000
+export HISTFILESIZE=10000
+shopt -s histappend
+export PROMPT_COMMAND='history -a'
+export HISTCONTROL=ignoredups
+export VISUAL=vim
+#!/bin/bash
+
+export PATH=/opt/nodejs/bin:$PATH
+
+export HISTTIMEFORMAT="%F %T "
+
+alias 'psx'='ps axu | grep -e PID -e '
+alias 'ltr'='ls -ltr'
+alias 'pst'='ps awwfux | less -S'
+alias 'go'='gnome-open'
+alias 'quiltdiff'='quilt --color=always diff'
+
+#watch youtube videos with mplayer
+youtube() {
+echo $1
+echo 'curl -s $1| sed -n "/watch_fullscreen/s;.*\(video_id.\+\)&title.*;\1;p" '
+echo mplayer -fs $(echo "http://youtube.com/get_video.php?$(curl -s $1| sed -n "/watch_fullscreen/s;.*\(video_id.\+\)&title.*;\1;p")")
+}
+
+#capture desktop in a video
+capturedesktop() {
+	ffmpeg -f x11grab -r 25 -s 1140x900 -i :0.0 /tmp/outputFile.mpg
+}
+
+# ruby
+PATH=$PATH:~/.gem/ruby/2.3.0/bin
+
+LESSOPEN="lessopen.sh %s"
+LESSCLOSE="lessclose.sh %s %s"
+
+# docker aliases
+alias docker_dangling_rmi="docker rmi $(docker images -f "dangling=true" -q)"
+alias docker_dangling_rmvm="docker volume rm $(docker volume ls -qf dangling=true)"
+alias docker-rm-danglign="docker rm $(docker ps --filter=status=exited --filter=status=created -q)"
+
+export PATH=$PATH:~/bin
+

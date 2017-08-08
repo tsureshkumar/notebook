@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=ConsoleOnly;Network;Email
+Encoding=UTF-8
+Exec=fetchmail -d 300
+Icon=fetchmail
+Type=Application
+Name=Fetchmail
+GenericName=Mail Transport
+Terminal=true

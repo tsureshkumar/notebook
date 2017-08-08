@@ -1,0 +1,8 @@
+#/usr/bin/xscreensaver -no-splash &
+#eval $(/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
+export SSH_AUTH_SOCK
+exec gnome-session &
+exec gnome-session --session xmonad-gnome-nopanel "$@"
+pgrep gnome-shell
+[ "z" != "$?" ] && gnome-shell
+#xmonad &

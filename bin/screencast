@@ -1,0 +1,15 @@
+#!/bin/bash
+
+file=$1;shift
+resolution=1600x900
+resolution=1574x874
+
+ffmpeg -f alsa -i pulse -an -s $resolution -r 15 -f x11grab  -probesize 10M -analyzeduration 100M  -i :0.0+0,25 \
+-vcodec mpeg4 -qscale 0 -y $file.tmp.mp4
+#-vcodec mpeg4 -sameq -y $file.tmp.mp4
+
+ffmpeg -i $file.tmp.mp4 -vcodec libx264 -pass 1 -b 240000 \
+-f mp4 -y $file.pass1.mp4
+
+ffmpeg -i $file.pass1.mp4 -vcodec libx264 -pass 2 -b 240000 \
+-f mp4 -y $file
