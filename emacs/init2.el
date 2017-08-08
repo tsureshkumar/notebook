@@ -115,7 +115,7 @@
 (load-library "coffeescript-config")
 (load-library "org-mode-config")
 (load-library "org-config")
-(load-library "dotgnus")
+;(load-library "dotgnus")
 (load-library "cpp-config")
 (load-library "yas-config")
 (load-library "color-theme-config")
