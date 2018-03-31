@@ -32,8 +32,25 @@ test -s ~/my/notebook/.sureshrc && . ~/my/notebook/.sureshrc || true
 shopt -s histappend # append history instead of overwriting
 PROMPT_COMMAND='history -a'
 
+export PATH=~/go/bin:$PATH
 export PATH=~/my/notebook/bin:$PATH
-export PATH=~/my/notebook/bin:~/bin:$PATH
+export PATH=~/my/notebook/bin:~/bin:/usr/local/bin:$PATH
+
+platform='unknown'
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+   platform='linux'
+elif [[ "$unamestr" == 'FreeBSD' ]]; then
+   platform='freebsd'
+elif [[ "$unamestr" == 'Darwin' ]]; then
+   platform='darwin'
+fi
+
+test "$platform" == "darwin" && {
+export PATH=$PATH:/usr/local/bin
+alias timeout="gtimeout"
+alias readlink="greadlink"
+}
 
 
 function sdiff {
@@ -199,3 +216,7 @@ alias docker-rm-danglign="docker rm $(docker ps --filter=status=exited --filter=
 
 export PATH=$PATH:~/bin
 
+function rand() {
+    LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} | head -n 1
+}
+export -f rand
