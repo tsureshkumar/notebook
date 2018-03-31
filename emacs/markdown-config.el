@@ -47,3 +47,6 @@
 ; '(markdown-toc-header-toc-title "**customized title**")
  '(markdown-toc-header-toc-end "[//]: # (toc end)")
 )
+
+; install markdown and smartypants
+(setq markdown-command "LC_ALL= LC_LANG=en_IN.UTF-8 multimarkdown | smartypants")

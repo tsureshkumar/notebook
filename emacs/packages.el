@@ -44,6 +44,7 @@
     xcscope
     smex
     org-journal
+    org-capture-pop-frame
 
 
     clojure-mode
@@ -84,6 +85,7 @@
   (dolist (p prelude-packages)
     (when (not (package-installed-p p))
       (package-install p))))
+
 
 (provide 'prelude-packages)
 

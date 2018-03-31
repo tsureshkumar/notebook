@@ -33,6 +33,7 @@
 ;; loading paths for libraries, set it to wherever you put the emacs/
 ;; directory that contains all these files.
 (defvar emacs-root "~/my/notebook/")
+(defvar my-root "~/my/")
 (setq custom-file (concat "~/my/notebook-private/emacs/" "custom-config.el"))
 
 ;; convenience function for defining library paths
