@@ -1,4 +1,4 @@
-(setq org-agenda-files '("~/my/notebook/org/"))
+(setq org-agenda-files '("~/my/notebook-private/org/"))
 
 ; use org mode from org mode melpa site
 (require 'package)
@@ -8,14 +8,6 @@
 (global-set-key "\C-cc" 'org-capture)
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cb" 'org-iswitchb)
-
-
-(setq org-remember-templates
-     '(
-      ("Todo" ?t "* TODO %^{Brief Description} %^g\n%?\nAdded: %U" "~/my/notebook/org/Inbox.org" "Tasks")
-      ("Private" ?p "\n* %^{topic} %T \n%i%?\n" "~/my/notebook/org/privnotes.org")
-      ("WordofDay" ?w "\n* %^{topic} \n%i%?\n" "~/my/notebook/org/wotd.org")
-      ))
 
 
 (setq org-agenda-exporter-settings
@@ -47,10 +39,9 @@
 )
 )
 
-
 (defun gtd ()
     (interactive)
-    (find-file "~/my/notebook/org/Inbox.org")
+    (find-file "~/my/notebook-private/org/Inbox.org")
 )
 (global-set-key (kbd "C-c g") 'gtd)
 
@@ -75,3 +66,40 @@
          :publishing-directory "public_html/blog/www/blog/"
          :publishing-function org-html-publish-to-html
          )))
+
+
+(setq org-default-notes-file (concat my-root "/notebook-private/org/Inbox.org"))
+(global-set-key (kbd "C-c C-c") 'org-capture)
+(defvar gtd-home (concat my-root "notebook-private/org"))
+(setq org-capture-templates '(("t" "Todo [inbox]" entry
+                               (file+headline (concat gtd-home "/inbox.org") "Tasks")
+                               "* TODO %i%?")
+                              ("T" "Tickler" entry
+                               (file+headline (concat gtd-home "/tickler.org") "Tickler")
+                               "* %i%? \n %U")))
+(setq org-refile-targets '(((concat gtd-home "/gtd.org") :maxlevel . 3)
+                           ((concat gtd-home "/someday.org") :level . 1)
+                           ((concat gtd-home "/tickler.org") :maxlevel . 2)))
+
+(setq org-todo-keywords '((sequence "TODO(t)" "|" "WAITING(w)" "|" "DONE(d)" "|" "CANCELLED(c)")))
+
+(setq org-agenda-custom-commands 
+      '(("o" "At the office" tags-todo "@office"
+         ((org-agenda-overriding-header "Office")
+          (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))))
+
+(defun my-org-agenda-skip-all-siblings-but-first ()
+  "Skip all but the first non-done entry."
+  (let (should-skip-entry)
+    (unless (org-current-is-todo)
+      (setq should-skip-entry t))
+    (save-excursion
+      (while (and (not should-skip-entry) (org-goto-sibling t))
+        (when (org-current-is-todo)
+          (setq should-skip-entry t))))
+    (when should-skip-entry
+      (or (outline-next-heading)
+          (goto-char (point-max))))))
+		  
+(defun org-current-is-todo ()
+  (string= "TODO" (org-get-todo-state)))

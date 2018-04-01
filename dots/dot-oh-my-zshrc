@@ -71,7 +71,6 @@ plugins=(
   sbt
   scala
   screen
-  ssh-agent
   tmux
 )
 
