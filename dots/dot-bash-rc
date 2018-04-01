@@ -71,7 +71,7 @@ alias gb="git branch"
 alias gout="git checkout "
 alias gkall="gitk --all "
 alias gk="gitk"
-alias vi="vi -v"
+#alias vi="gvim -v"
 alias sdocker="sudo docker"
 
 export ALTERNATE_EDITOR=""
@@ -188,7 +188,9 @@ export HISTTIMEFORMAT="%F %T "
 alias 'psx'='ps axu | grep -e PID -e '
 alias 'ltr'='ls -ltr'
 alias 'pst'='ps awwfux | less -S'
+#alias 'go'='gnome-open'
 alias 'quiltdiff'='quilt --color=always diff'
+alias brewup='brew update; brew upgrade; brew prune; brew cleanup; brew doctor'
 
 #watch youtube videos with mplayer
 youtube() {

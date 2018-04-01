@@ -9,8 +9,9 @@
                ("\\.\(pl\|pm\)$" . "perl %f")
                                         ;("app\\.js$" . ,(expand-file-name "~/Library/Application\\ Support/Titanium/mobilesdk/osx/1.8.0.1/iphone/builder.py run %F"))
                ("\\.js$" . ,(expand-file-name "~/Library/Application\\ Support/Titanium/mobilesdk/osx/1.8.0.1/iphone/builder.py run %F")
-
-                )))
+                )
+                (".*Test\\.cpp$" . "echo hehe")
+               ))
 
 (add-to-list 'smart-compile-alist
              `(c-mode  . "gcc -O0 -g -Wall -o %n %f")

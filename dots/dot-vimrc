@@ -154,6 +154,10 @@ Plug 'jlanzarotta/bufexplorer'
 " NERDtree file explorer
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 
+" Haskell vim
+" Plug 'neovimhaskell/haskell-vim'
+Plug 'begriffs/haskell-vim-now'
+
 "Sublime like cntrol p menu
 Plug 'kien/ctrlp.vim'
 

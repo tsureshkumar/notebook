@@ -47,3 +47,12 @@
 ; '(markdown-toc-header-toc-title "**customized title**")
  '(markdown-toc-header-toc-end "[//]: # (toc end)")
 )
+
+(setq markdown-enale-math t)
+(setq markdown-command "markdown | smartypants")
+
+(add-to-list 'auto-mode-alist '("README\\.md\\'" . gfm-mode))
+
+(defun sk/select-markdown-command
+    (setq markdown-command "pandoc -c ~/my/notebook/emacs/other-files/css/github-pandoc.css --from markdown_github -t html5 -f markdown+ignore_line_breaks --mathjax --highlight-style pygments --standalone --toc "))
+

@@ -1,0 +1,23 @@
+# Lines configured by zsh-newuser-install
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=1000
+bindkey -e
+# End of lines configured by zsh-newuser-install
+# The following lines were added by compinstall
+zstyle :compinstall filename '/Users/tsureshkumar/.zshrc'
+
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
+
+# zsh plugins
+plugins=(git)
+
+export ZSH_THEME=bureau
+
+
+# themes, plugins from oh-my-zshrc
+# refer https://github.com/robbyrussell/oh-my-zsh
+# to install: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+source $HOME/my/notebook/dots/dot-oh-my-zshrc
