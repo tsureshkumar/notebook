@@ -1,2 +1,2 @@
 bind status D @rm %(file)
-bind status X !sh -c "echo %(file) >> .gitignore
+bind status X !sh -c "echo %(file) >> .gitignore && vi .gitignore"

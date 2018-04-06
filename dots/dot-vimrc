@@ -44,7 +44,7 @@ let g:mapleader = "-"
 " All other *.md files are recognized as modula2 files. Recognize *.md
 " files as markdown files instead.
 autocmd BufNewFile,BufRead *.md,*.txt set filetype=markdown
-autocmd BufNewFile,BufRead *.go,Makefile setlocal tabstop=8 noexpandtab
+autocmd BufNewFile,BufRead *.go,Makefile setlocal tabstop=4 noexpandtab
 
 " While coding vertical split windows in terminals, sometimes a single
 " line of code wraps into multiple lines in vertical split window. If the
@@ -163,6 +163,14 @@ Plug 'begriffs/haskell-vim-now'
 "Sublime like cntrol p menu
 Plug 'kien/ctrlp.vim'
 
+" Dot Graphviz helpers
+Plug 'wannesm/wmgraphviz.vim'
+
+" BoxDraw plugin for drawing diagrams
+" Plug 'gyim/vim-boxdraw'
+
+" Org mode equ
+Plug 'jceb/vim-orgmode'
 
 " Initialize plugin system
 call plug#end()
@@ -214,3 +222,6 @@ augroup project
     autocmd!
     autocmd BufRead,BufNewFile *.h,*.c set filetype=c.doxygen
 augroup END
+
+" Markdown customizations
+au BufRead,BufNewFile *.md setlocal textwidth=80

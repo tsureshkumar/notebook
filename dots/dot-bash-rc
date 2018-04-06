@@ -29,7 +29,6 @@ export HISTSIZE=10000
 
 test -s ~/.alias && . ~/.alias || true
 test -s ~/my/notebook/.sureshrc && . ~/my/notebook/.sureshrc || true
-shopt -s histappend # append history instead of overwriting
 PROMPT_COMMAND='history -a'
 
 export PATH=~/go/bin:$PATH
@@ -175,7 +174,7 @@ ANT_OPTS="-Dfile.encoding=ISO-8859-1 -Djavax.xml.accessExternalDTD=all -Djavax.x
 unset HISTFILESIZE
 export HISTSIZE=10000
 export HISTFILESIZE=10000
-shopt -s histappend
+test $SHELL == "bash" &&  shopt -s histappend
 export PROMPT_COMMAND='history -a'
 export HISTCONTROL=ignoredups
 export VISUAL=vim
