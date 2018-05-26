@@ -113,7 +113,9 @@ if executable('ag')
 endif
 " bind K to grep word under cursor
 nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
-
+" bind \ (backward slash) to grep shortcut
+command! -nargs=+ -complete=file -bar Ag silent! grep! <args>|cwindow|redraw!
+nnoremap \ :Ag<SPACE>
 
 if empty(glob('~/.vim/autoload/plug.vim'))
   silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
@@ -172,6 +174,17 @@ Plug 'wannesm/wmgraphviz.vim'
 " Org mode equ
 Plug 'jceb/vim-orgmode'
 
+" Vim prettier for nodejs prettier program for auto formatting code
+"Plug 'prettier/vim-prettier', {
+"  \ 'do': 'yarn install',
+"  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue'] }
+
+"snippets
+" Plug 'honza/vim-snippets'
+Plug 'Shougo/neocomplcache'
+Plug 'Shougo/neosnippet'
+Plug 'Shougo/neosnippet-snippets'
+
 " Initialize plugin system
 call plug#end()
 
@@ -225,3 +238,14 @@ augroup END
 
 " Markdown customizations
 au BufRead,BufNewFile *.md setlocal textwidth=80
+
+" CtrlP customizations
+let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$' }
+
+
+" Snippets
+let g:go_snippet_engine = "neosnippet"
+let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets'
+imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+
