@@ -17,7 +17,12 @@ plugins=(git)
 export ZSH_THEME=bureau
 
 
+# generate random password
+randpw(){ LC_CTYPE=C < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16};echo;}
+
 # themes, plugins from oh-my-zshrc
 # refer https://github.com/robbyrussell/oh-my-zsh
 # to install: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 source $HOME/my/notebook/dots/dot-oh-my-zshrc
+source $HOME/my/notebook-office/dots/zshrc
+#source $HOME/projectsrc

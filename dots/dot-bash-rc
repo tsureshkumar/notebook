@@ -25,6 +25,10 @@
 #export PILOTPORT=/dev/pilot
 #export PILOTRATE=115200
 
+MYSHELL=zsh
+[[ "x$ZSH_VERSION" != "x" ]] && export MYSHELL=zsh
+[[ "x$BASH_VERSION" != "x" ]] && export MYSHELL=bash
+
 export HISTSIZE=10000
 
 test -s ~/.alias && . ~/.alias || true
@@ -45,17 +49,20 @@ elif [[ "$unamestr" == 'Darwin' ]]; then
    platform='darwin'
 fi
 
-test "$platform" == "darwin" && {
-export PATH=$PATH:/usr/local/bin
-alias timeout="gtimeout"
-alias readlink="greadlink"
-}
+if [[ "x$platform" == "xdarwin" ]]; then
+    export PATH=$PATH:/usr/local/bin
+    alias timeout="gtimeout"
+    alias readlink="greadlink"
+fi 
 
 
 function sdiff {
 	command diff -pNaur "$@"
 }
-export -f sdiff
+
+if [[ $MYSHELL == "bash" ]]; then
+    export -f sdiff
+fi
 
 JAVA_HOME=/opt/java/jdk1.8.0_121/
 export PATH=$JAVA_HOME/bin:$PATH
@@ -174,7 +181,7 @@ ANT_OPTS="-Dfile.encoding=ISO-8859-1 -Djavax.xml.accessExternalDTD=all -Djavax.x
 unset HISTFILESIZE
 export HISTSIZE=10000
 export HISTFILESIZE=10000
-test $SHELL == "bash" &&  shopt -s histappend
+[[ $SHELL == "bash" ]] &&  shopt -s histappend
 export PROMPT_COMMAND='history -a'
 export HISTCONTROL=ignoredups
 export VISUAL=vim
@@ -206,6 +213,9 @@ capturedesktop() {
 # ruby
 PATH=$PATH:~/.gem/ruby/2.3.0/bin
 
+# rust
+PATH=$PATH:~/.cargo/bin
+
 LESSOPEN="lessopen.sh %s"
 LESSCLOSE="lessclose.sh %s %s"
 
@@ -219,4 +229,7 @@ export PATH=$PATH:~/bin
 function rand() {
     LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} | head -n 1
 }
-export -f rand
+
+if [[ $MYSHELL == "bash" ]]; then
+    export -f rand
+fi
