@@ -81,6 +81,14 @@ nnoremap <F7> :make!<cr>
 map <S-F7> :make clean all<CR>
 "run progrgam
 nnoremap <F5> :!./%:r<cr>
+" search next result
+noremap [q :cprev<CR>
+nnoremap ]q :cnext<CR>
+nnoremap [Q :cfirst<CR>
+nnoremap ]Q :clast<CR>
+" open current file in a new vim tab and close
+nnoremap t. :tabedit %<cr>
+nnoremap tc :tabclose<cr>
 
 let g:ycm_global_ycm_extra_conf = "~/.vim/.ycm_extra_conf.py"
 if &diff
@@ -132,6 +140,7 @@ call plug#begin('~/.vim/plugged')
 " for elm"
 Plug 'elmcast/elm-vim'
 Plug 'fatih/vim-go'
+Plug 'AndrewRadev/splitjoin.vim'
 
 " dir diff and merge
 Plug 'will133/vim-dirdiff'
@@ -153,7 +162,7 @@ Plug 'shime/vim-livedown'
 Plug 'jlanzarotta/bufexplorer'
 
 " Plugin for git workflow
-" Plug 'tpope/vim-fugitive.git'
+Plug 'tpope/vim-fugitive'
 
 " NERDtree file explorer
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
@@ -175,9 +184,33 @@ Plug 'wannesm/wmgraphviz.vim'
 Plug 'jceb/vim-orgmode'
 
 " Vim prettier for nodejs prettier program for auto formatting code
-"Plug 'prettier/vim-prettier', {
-"  \ 'do': 'yarn install',
-"  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue'] }
+Plug 'prettier/vim-prettier', {
+  \ 'do': 'yarn install',
+  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue'] }
+
+" Neo4j cypher language
+Plug 'neo4j-contrib/cypher-vim-syntax'
+
+" bookmark/annotation tool
+Plug 'MattesGroeger/vim-bookmarks'
+Plug 'PProvost/vim-ps1'
+
+" reactjs development
+Plug 'pangloss/vim-javascript'
+Plug 'mxw/vim-jsx'
+Plug 'mattn/emmet-vim'
+Plug 'w0rp/ale'
+Plug 'othree/yajs.vim' " js highlighter
+
+" run async commands
+Plug 'skywind3000/asyncrun.vim'
+
+" Typescript
+Plug 'leafgarland/typescript-vim'
+Plug 'HerringtonDarkholme/yats.vim'
+
+"kotlin
+Plug 'udalov/kotlin-vim'
 
 "snippets
 " Plug 'honza/vim-snippets'
@@ -187,9 +220,6 @@ Plug 'roxma/vim-hug-neovim-rpc'
 Plug 'Shougo/neocomplcache'
 Plug 'Shougo/neosnippet'
 Plug 'Shougo/neosnippet-snippets'
-
-"kotlin
-Plug 'udalov/kotlin-vim'
 
 " Initialize plugin system
 call plug#end()
@@ -221,6 +251,8 @@ augroup GoLanguage
   au FileType go :nnoremap <buffer> <silent> <Leader>r :GoRun<CR>
   au FileType go :nnoremap <buffer> <silent> <Leader>d :GoDoc<CR>
   au FileType go :nnoremap <buffer> <silent> <Leader>k :GoDef<CR>
+  au FileType go :nnoremap <buffer> <silent> <Leader>t :GoTest<CR>
+  au FileType go :nnoremap <buffer> <silent> <Leader>b :GoBuild<CR>
   au FileType go :nnoremap <buffer> <silent> <Leader>i :GoImports<CR>:w<CR>
 augroup END
 " End Go shortcuts
@@ -270,4 +302,22 @@ smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 if has('conceal')
   set conceallevel=2 concealcursor=niv
 endif
+
+
+" reactjs development configurations
+" for emmet plugin
+let g:user_emmet_leader_key='<Tab>'
+let g:user_emmet_settings = {
+  \  'javascript.jsx' : {
+    \      'extends' : 'jsx',
+    \  },
+  \}
+
+" run eslint and prettier when saving javascript fies
+" the project should have run ```npm install -save-dev prettier eslint-config-prettier eslint-plugin-prettier```
+autocmd BufWritePost *.js  AsyncRun -post=checktime ./node_modules/.bin/eslint --fix %
+" the project should have run ```npm install -save-dev prettier tslint```
+autocmd BufWritePost *.ts  AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
+autocmd BufWritePost *.tsx AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
+
 

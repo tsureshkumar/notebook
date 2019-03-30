@@ -29,8 +29,16 @@ export ZSH_THEME=bureau
 export PATH=/usr/local/bin:/usr/local/opt/python/libexec/bin:$PATH #home brew path
 
 
+# generate random password
+randpw(){ LC_CTYPE=C < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16};echo;}
+
 # themes, plugins from oh-my-zshrc
 # refer https://github.com/robbyrussell/oh-my-zsh
 # to install: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 source $HOME/my/notebook/dots/dot-oh-my-zshrc
+<<<<<<< HEAD
 source $HOME/my/notebook-private/dots/dot-DO.sh
+=======
+source $HOME/my/notebook-office/dots/zshrc
+#source $HOME/projectsrc
+>>>>>>> dec3adbaa7ae2a4904a540c0306b7b2e5a9db99e
