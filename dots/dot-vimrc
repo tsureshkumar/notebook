@@ -181,9 +181,15 @@ Plug 'jceb/vim-orgmode'
 
 "snippets
 " Plug 'honza/vim-snippets'
+Plug 'Shougo/deoplete.nvim'
+Plug 'roxma/nvim-yarp'
+Plug 'roxma/vim-hug-neovim-rpc'
 Plug 'Shougo/neocomplcache'
 Plug 'Shougo/neosnippet'
 Plug 'Shougo/neosnippet-snippets'
+
+"kotlin
+Plug 'udalov/kotlin-vim'
 
 " Initialize plugin system
 call plug#end()
@@ -244,8 +250,24 @@ let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$' }
 
 
 " Snippets
+let g:deoplete#enable_at_startup = 1
+"  It is assumed you already have deoplete configured
 let g:go_snippet_engine = "neosnippet"
 let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets'
 imap <C-k>     <Plug>(neosnippet_expand_or_jump)
 smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-k>     <Plug>(neosnippet_expand_target)
+"imap <expr><TAB>
+" \ pumvisible() ? "\<C-n>" :
+" \ neosnippet#expandable_or_jumpable() ?
+" \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
+\ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+"
+" " For conceal markers.
+if has('conceal')
+  set conceallevel=2 concealcursor=niv
+endif
 

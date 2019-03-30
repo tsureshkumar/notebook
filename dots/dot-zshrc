@@ -2,13 +2,23 @@
 HISTFILE=~/.histfile
 HISTSIZE=1000
 SAVEHIST=1000
+export ZSH_DISABLE_COMPFIX=true
 bindkey -e
 # End of lines configured by zsh-newuser-install
 # The following lines were added by compinstall
 zstyle :compinstall filename '/Users/tsureshkumar/.zshrc'
 
+
+fpath=(
+  /usr/local/share/zsh-completions
+  /usr/local/share/zsh/site-functions
+  /usr/local/share/zsh/site-functions
+  $fpath
+)
+fpath=(/usr/local/share/zsh-completions $fpath)
+
 autoload -Uz compinit
-compinit
+compinit -u
 # End of lines added by compinstall
 
 # zsh plugins
@@ -16,8 +26,11 @@ plugins=(git)
 
 export ZSH_THEME=bureau
 
+export PATH=/usr/local/bin:/usr/local/opt/python/libexec/bin:$PATH #home brew path
+
 
 # themes, plugins from oh-my-zshrc
 # refer https://github.com/robbyrussell/oh-my-zsh
 # to install: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 source $HOME/my/notebook/dots/dot-oh-my-zshrc
+source $HOME/my/notebook-private/dots/dot-DO.sh

@@ -34,6 +34,7 @@ PROMPT_COMMAND='history -a'
 export PATH=~/go/bin:$PATH
 export PATH=~/my/notebook/bin:$PATH
 export PATH=~/my/notebook/bin:~/bin:/usr/local/bin:$PATH
+export PATH=/usr/local/opt/python/libexec/bin:$PATH #for homebrew
 
 platform='unknown'
 unamestr=`uname`
