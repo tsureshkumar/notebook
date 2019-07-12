@@ -221,6 +221,9 @@ Plug 'Shougo/neocomplcache'
 Plug 'Shougo/neosnippet'
 Plug 'Shougo/neosnippet-snippets'
 
+" Plugins for rust lang development
+Plug 'rust-lang/rust.vim'
+
 " Initialize plugin system
 call plug#end()
 
