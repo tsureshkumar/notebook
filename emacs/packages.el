@@ -40,7 +40,8 @@
     bbdb
     ecb
     muse
-    color-theme
+    ;; color-theme
+    color-theme-modern
     xcscope
     smex
     org-journal
