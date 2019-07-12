@@ -123,7 +123,7 @@ endif
 nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
 " bind \ (backward slash) to grep shortcut
 command! -nargs=+ -complete=file -bar Ag silent! grep! <args>|cwindow|redraw!
-nnoremap \ :Ag<SPACE>
+nnoremap \ :Ag<SPACE><C-R><C-W>
 
 if empty(glob('~/.vim/autoload/plug.vim'))
   silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
@@ -186,10 +186,11 @@ Plug 'jceb/vim-orgmode'
 " Vim prettier for nodejs prettier program for auto formatting code
 Plug 'prettier/vim-prettier', {
   \ 'do': 'yarn install',
-  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue'] }
+  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml'] }
 
 " Neo4j cypher language
 Plug 'neo4j-contrib/cypher-vim-syntax'
+
 
 " bookmark/annotation tool
 Plug 'MattesGroeger/vim-bookmarks'
@@ -208,6 +209,7 @@ Plug 'skywind3000/asyncrun.vim'
 " Typescript
 Plug 'leafgarland/typescript-vim'
 Plug 'HerringtonDarkholme/yats.vim'
+Plug 'Quramy/tsuquyomi'
 
 "kotlin
 Plug 'udalov/kotlin-vim'
@@ -281,7 +283,7 @@ augroup END
 au BufRead,BufNewFile *.md setlocal textwidth=80
 
 " CtrlP customizations
-let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$' }
+let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$\|vendor$' }
 
 
 " Snippets
@@ -323,4 +325,6 @@ autocmd BufWritePost *.js  AsyncRun -post=checktime ./node_modules/.bin/eslint -
 autocmd BufWritePost *.ts  AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
 autocmd BufWritePost *.tsx AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
 
-
+let g:ale_linters = {
+            \    'typescript': ['tslint', 'tsserver'],
+            \}
