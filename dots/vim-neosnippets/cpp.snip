@@ -1,0 +1,447 @@
+snippet     rng
+abbr        mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+snippet INF
+abbr   #define INF ((int)1e9)
+    #define INF ((int)1e9)
+
+snippet debug
+abbr #define debug...
+    /*debug functions*/
+    #define DEBUG 1
+    #if DEBUG == 1
+        struct debugger{template<typename T> debugger& operator ,(const T& v){std::cout<<v<<" ";return *this;}}dbg;
+    #define debug(...) {cout << #__VA_ARGS__ << ": "; dbg,__VA_ARGS__;std::cout<<std::endl;}
+    #else
+    #define debug(...) // Just strip off all debug tokens
+    #define DEBUG 0
+    #endif
+
+
+snippet fenwick
+abbr fenwick tree implementation for range sum and O(1) update
+    template<class T>
+    class FW {
+        private:
+            vector<T> tree;
+            int n;
+        public:
+            FW(int n1) {
+                int k=pow(2, ceil(log2(n1)));
+                n = k;
+                tree.assign(n+5, 0);
+            }
+
+            void add(int i, T x) {
+                i++;
+                for(int k=i; k <= n; k+=(k&-k)) {
+                    tree[k] += x;
+                }
+            }
+            int rsum(int i) {
+                T s = 0;
+                for(int k=i; k >= 1; k-=(k&-k)) {
+                    s += tree[k];
+                }
+                return s;
+            }
+            T sum(int i, int j) {
+                if(i > j) swap(i, j);
+                return rsum(j+1) - rsum(i);
+            }
+            void print() {
+                for(int i=0; i<n; i++) cout << setw(3) << i; cout << "\n";
+                for(int i=0; i<n; i++) cout << setw(3) << tree[i];
+                cout << "\n";
+            }
+    };
+
+snippet segtree
+abbr segment tree implementation
+    template<class T>
+    class SegmentTree {
+        private:
+            vector<T> arr;
+            int n;
+        public:
+            SegmentTree(int n1) {
+                int k = pow(2, ceil(log2(n1)));
+                n = k;
+                arr.assign(2*k+5, 0);
+            }
+            void add(int i, T x) {
+                int j = i+n+1;
+                arr[j] = x;
+                for(j>>=1; j>0; j>>=1) {
+                    arr[j] += x;
+                }
+            }
+
+            T sum(int i, int j) {
+                i+=n+1, j+=n+1;
+                T s = 0;
+                while(i<=j) {
+                    if(i&1) s += arr[i++];
+                    if(~j&1) s += arr[j--];
+                    i >>= 1, j >>= 1;
+                }
+                return s;
+            }
+
+            void print(string fname) {
+                sstream ss;
+                ss << "strict digraph G  {\n";
+                for(int i=1; i<=2*n; i++) {
+                    ss << i << " [label=<" << i << "(" << arr[i] << ")>];\n";
+                }
+                for(int i=1; i<=n; i++) {
+                    ss << i << " -> " << 2*i << " ;\n";
+                    ss << i << " -> " << 2*i+1 << " ;\n";
+                }
+                ss << "}\n";
+            }
+    };
+
+snippet modpow
+abbr pow of n to p modulus m
+    int modpow(int n, int p, int m) {
+        if(p == 0 || n == 1) return 1%m;
+        if(p == 1) return n%m;
+        if(p%2 == 0) {
+            int r = modpow(n, p/2, m);
+            return ((long long)r*r)%m;
+        } else {
+            int r = modpow(n, p-1, m);
+            return ((long long)r*n)%m;
+        }
+    }
+
+snippet sieve
+abbr sieve of erotosthene
+    #define MX 10000007
+    vector<int> primes;
+    vector<int> phold(MX, 1);
+    void sieve() {
+        phold[1] = 0;
+        primes.push_back(2);
+        for(int i=2*2; i<=MX; i+=2) phold[i] = 0;
+        for(int i=3; i<=MX; i+=2) {
+            if(phold[i] != 1) continue;
+            primes.push_back(i);
+            if(i > MX/i) break;
+            for(int j=i*i; j <= MX; j+=i)
+                phold[j] = 0;
+        }
+    }
+
+snippet floodfill
+abbr floodfill
+    void floodfill(vvi &g, int u, int v, char c, int dirs=4) {
+        int  m = g.size(), n = m?g[0].size():0;
+        if(!(0 <= u && u < m && 0 <= v && v < n)) return;
+        if(g[u][v] == c) return;
+        g[u][v] = c;
+        int dx[] = {1,0,-1,0,1,1,-1,-1,1};
+        for(int i=0; i<dirs; i++) {
+            int nu = u + dx[i], nv = v + dx[i+1];
+            if(!(0 <= nu && nu < m && 0 <= nv && nv < n)) continue;
+            floodfill(g, nu, nv, c, dirs);
+        }
+    }
+
+snippet mcmf
+abbr min cost max flow
+    typedef tuple<int, LL, LL, LL> edge;
+    typedef vector<LL> vll;
+    class min_cost_max_flow {
+    private:
+      int V;
+      LL total_cost;
+      vector<edge> EL;
+      vector<vi> AL;
+      vll d;
+      vi last, vis;
+
+      bool SPFA(int s, int t) { // SPFA to find augmenting path in residual graph
+        d.assign(V, INF); d[s] = 0; vis[s] = 1;
+        queue<int> q({s});
+        while (!q.empty()) {
+          int u = q.front(); q.pop(); vis[u] = 0;
+          for (auto &idx : AL[u]) {                  // explore neighbors of u
+            auto &[v, cap, flow, cost] = EL[idx];          // stored in EL[idx]
+            if ((cap-flow > 0) && (d[v] > d[u] + cost)) {      // positive residual edge
+              d[v] = d[u]+cost;
+              if(!vis[v]) q.push(v), vis[v] = 1;
+            }
+          }
+        }
+        return d[t] != INF;                           // has an augmenting path
+      }
+
+      LL DFS(int u, int t, LL f = INF) {             // traverse from s->t
+        if ((u == t) || (f == 0)) return f;
+        vis[u] = 1;
+        for (int &i = last[u]; i < (int)AL[u].size(); ++i) { // from last edge
+          auto &[v, cap, flow, cost] = EL[AL[u][i]];
+          if (!vis[v] && d[v] == d[u]+cost) {                      // in current layer graph
+            if (LL pushed = DFS(v, t, min(f, cap-flow))) {
+          total_cost += pushed * cost;
+              flow += pushed;
+              auto &[rv, rcap, rflow, rcost] = EL[AL[u][i]^1]; // back edge 
+              rflow -= pushed;
+              vis[u] = 0;
+              return pushed;
+            }
+          }
+        }
+        vis[u] = 0;
+        return 0;
+      }
+
+      void getflowdfs(int u, vector<int> &visited, vector<tuple<int,int,LL,LL>> &res) {
+          if(visited[u]) return;
+          visited[u] = 1;
+          for(auto ve: AL[u]) {
+              auto &[v, cap, flow, cost] = EL[ve]; // back edge rflow -= pushed;
+              if(visited[v] == 0) {
+                  res.push_back({u, v, flow, cost});
+                  getflowdfs(v, visited, res);
+              }
+          }
+      }
+
+
+    public:
+      min_cost_max_flow(int initialV) : V(initialV), total_cost(0) {
+        EL.clear();
+        AL.assign(V, vi());
+        vis.assign(V, 0);
+      }
+
+      // if you are adding a bidirectional edge u<->v with weight w into your
+      // flow graph, set directed = false (default value is directed = true)
+      void add_edge(int u, int v, LL w, LL c, bool directed = true) {
+        if (u == v) return;                          // safeguard: no self loop
+        EL.emplace_back(v, w, 0, c);                    // u->v, cap w, flow 0
+        AL[u].push_back(EL.size()-1);                // remember this index
+        EL.emplace_back(u, directed ? 0 : w, 0, -c);     // back edge
+        AL[v].push_back(EL.size()-1);                // remember this index
+      }
+
+      pair<LL, LL> mcmf(int s, int t) {
+        LL mf = 0;                                   // mf stands for max_flow
+        while (SPFA(s, t)) {                          // an O(V^2*E) algorithm
+          last.assign(V, 0);                         // important speedup
+          while (LL f = DFS(s, t))                   // exhaust blocking flow
+            mf += f;
+        }
+        return {mf, total_cost};
+      }
+
+      // return flow edges
+      vector<tuple<int,int,LL,LL>> getflow() {
+          vector<tuple<int,int,LL,LL>> res;
+          for(int i=0; i<V; i++) {
+              for(auto ve: AL[i]) {
+                  auto [v, cap, flow, cost] = EL[ve]; 
+                  if(flow > 0) {
+                      res.push_back({i, v, flow, cost});
+                  }
+              }
+          }
+          return res;
+      }
+      void writegraph(string fname, int s, int t) {
+          ofstream of(fname);
+          of << print_graph(s,t,{0,1,2,3}, {4,5,6,7});
+          of.close();
+      }
+      string print_graph(int s=0, int t=1, vi left={}, vi right={}) {
+          stringstream ss;
+          ss << "strict digraph G {\n";
+          ss << "rankdir=LR\n";
+          ss << "ranksep = 6.0; size = \"30,30\";\n";
+          ss << "{ rank=same;" << s << " [color=green style=filled]; }\n";
+          ss << "{ rank=same;" << t << " [color=blue style=filled]; }\n";
+          ss << "{ rank=same;"; for(auto v: left) { ss << v << ";"; } ss << "}\n";
+          ss << "{ rank=same;"; for(auto v: right) { ss << v << ";"; } ss << "}\n";
+          vi vis(V,0);
+          for(int i=0; i<V; i++) {
+              for(auto ve: AL[i]) {
+                  auto [v, cap, flow, cost] = EL[ve]; 
+                  string lbl = "label=<(" + to_string(cap) + "," + to_string(flow) + "," + to_string(cost) + ")>";
+                  if(flow > 0) lbl += " color=green style=bold";
+                  else if(cost < 0) lbl += " color=red style=dotted";
+                  ss << i << " -> " << v << " [" << lbl << "];\n";
+              }
+          }
+          ss << "}\n";
+          return ss.str();
+      }
+    };
+
+snippet sssp_bellman_ford
+abbr    bellman ford algorithm to find shortest patfh from s to all vertices
+    void sssp_bellman_ford(vector<vector<pair<int,int>>> &g, int s, vector<int> &dist) {
+        int n = g.size();
+        dist[s] = 0;
+
+        for(int i=0 ; i<n-2; i++) {
+            for(int u=0; u<g.size(); u++) {
+                for(auto [v,w]: g[u]) {
+                        dist[v] = min(dist[v], dist[u] + w);
+                }
+            }
+        }
+    }
+
+snippet graph_print
+abbr print graph in adj format using graphviz
+    auto edgelbl = [&](int u, int v) {
+        return to_string(g[u][v].second);
+    };
+
+    auto vlbl = [&](int u) { return dist[u] == INF ? "^^" : to_string(dist[u]) ; };
+
+    auto print_graph = [&]() {
+        string s = "strict digraph G {\n";
+        for(int u=0; u<g.size(); u++) {
+            for(int v=0; v<g[u].size(); v++) {
+                s += to_string(u) + " -> " + to_string(g[u][v].first) + "[label=<" + edgelbl(u,v) + ">];\n" ;
+            }
+        }
+        for(int u=0; u<g.size(); u++) {
+                s += to_string(u) + "[label=<" + to_string(u)  +  " dist=(" + vlbl(u) + ")>];\n";
+        }
+        s += "}\n";
+        return s;
+    };
+
+snippet sssp_djkstra
+abbr dkjkstra shortest path from s to t
+    int sssp_djkstra(vector<vector<pair<int,int>>> &g, int s, int t, vector<int> &dist) {
+        //priority_queue<pair<int,int>, vector<pair<int,int>>, less<int>> pq;
+        priority_queue<pair<int,int>> pq;
+        pq.push({0, s});
+        dist[s] = 0;
+
+        while(!pq.empty()) {
+            auto [d,u] = pq.top(); pq.pop();
+            if(d > dist[u]) continue;
+            if(u==t) break;
+            for(auto [v,w]: g[u]) {
+                dist[v] = min(dist[v], w + dist[u]);
+                pq.push({-dist[v], v});
+            }
+        }
+
+        return dist[t];
+    }
+
+snippet print_matrix
+abbr print a 2d matrix
+    for(int i=0; i<n+1 ; i++) {
+        if(i==0) cout << setw(5) << "" << setw(3) << "|";
+        else cout << setw(5) << i-1 ; 
+    }
+    cout << "\n";
+    for(int i=0; i<n+3 ; i++) {
+        cout << string(5, '-');
+    }
+    cout << "\n";
+
+    for(int i=0; i<n; i++) {
+        cout << setw(5) << i << setw(3) << "|";
+        for(int j=0; j<n; j++) {
+            if(dist[i][j] == INF) cout << setw(5) << "-" ;
+            else cout << setw(5) << dist[i][j];
+        }
+        cout << "\n";
+    }
+
+snippet toposort
+abbr topological sort a DAG
+    void toposort(vector<vector<int>> &g, int u, vector<int> &visited, vector<int> &path) {
+        if(visited[u]) return;
+        visited[u] = 1;
+        for(int j=0; j<g[u].size(); j++) {
+            toposort(g, g[u][j], visited, path);
+        }
+        visited[u] = 2;
+        path.push_back(u);
+    }
+
+snippet comp
+abbr competitive programming...
+    #include <iostream>
+    #include <string>
+    #include <sstream>
+    #include <cmath>
+    #include <vector>
+    #include <queue>
+    #include <stack>
+    #include <algorithm>
+    #include <map>
+    #include <unordered_map>
+    #include <set>
+    #include <bitset>
+    #include <unordered_set>
+    #include <random>
+    #include <functional>
+    #include <iterator>
+
+    using namespace std;
+
+    //----------TEMPLATES----------
+    template<typename... T>
+    void see(T&... args) { ((cin >> args), ...);}
+    template<typename... T>
+    void put(T&&... args) { ((cout << args << " "), ...);}
+    template<typename... T>
+    void putl(T&&... args) { ((cout << args << " "), ...); cout<<'\n';}
+    #define error(...) { string _s = #__VA_ARGS__; replace(_s.begin(), _s.end(), ',', ' '); stringstream _ss(_s); istream_iterator<string> _it(_ss); err(_it, __VA_ARGS__); }
+    void err(istream_iterator<string> it) {}
+    template<typename T, typename... Args>
+    void err(istream_iterator<string> it, T a, Args... args) {cerr << *it << "=" << a << ", "; err(++it, args...);}
+
+    //----------MACROS----------
+    #define LL                  long long
+    #define INF                 ((1e9))
+    #define EPS                 (0.0000001)
+    #define PI                  (acos(-1.0))
+    #define MD                  (1000000007)
+    #define ii                  pair<int,int>
+    #define vii                 vector<pair<int,int>>
+    #define vi                  vector<int>
+    #define vvi                 vector<vector<int>>
+    #define rep(i,n)            for(int i=0, _##i=(n); i<_##i; ++i)
+    #define dwn(i,n)            for(int i=(n); --i>=0; )
+    #define ntimes(n)           while(n-- >0)
+    #define repr(i,l,r)         for(int i=(l), _##i=(r); i<_##i; ++i)
+    #define dwnr(i,l,r)         for(int i=(r), _##i=(l); --i>=_##i; )
+    #define repi(i,a)           for(__typeof((a).begin()) i=(a).begin(), _##i=(a).end(); i!=_##i; ++i)
+    #define dwni(i,a)           for(__typeof((a).rbegin()) i=(a).rbegin(), _##i=(a).rend(); i!=_##i; ++i)
+    #define BitLSOne(x)         ((x)&(-x))
+    #define BitLSOneRst(x)      ((x)&(x-1))
+    #define inbound(x,l,r)      (l < x && x < r)
+    #define inboundi(x,l,r)     (l <= x && x <= r)
+    #define overlaps(x,y,a,b)   ((min(y,a)-max(x,a)) > 0)
+    #define overlapwin(x,y,a,b) ((min(y,a)-max(x,a)))
+    #define all(a)              (a).begin(), (a).end()
+    #define bitcount            __builtin_popcount
+    #define gcd                 __gcd
+    #define INDEX(arr,ind)      (lower_bound(all(arr),ind)-arr.begin())
+    #define sz                  size()
+    #define seea(a,x,y)         for(int i=x;i<y;i++){cin>>a[i];}
+    #define seev(v,n)           for(int i=0;i<n;i++){int x; cin>>x; v.push_back(x);}
+    #define sees(s,n)           for(int i=0;i<n;i++){int x; cin>>x; s.insert(x);}
+
+    int main(int argc, char **argv) {
+        cin.tie(0);
+        ios::sync_with_stdio(false);
+
+        ${0:TARGET};
+
+        return 0;
+    }
