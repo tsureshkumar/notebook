@@ -69,6 +69,8 @@
     multiple-cursors
     ido-vertical-mode
     paradox
+
+    cyberpunk-theme
     )
   "A list of packages to ensure are installed at launch.")
 

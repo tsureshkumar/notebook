@@ -9,8 +9,8 @@ rxn = require('rx-node')
 
 rxn.fromStream(process.stdin).buffer(() => rx.Observable.timer(125))
         .subscribe((x) => 
-            token = x.toString('utf8')
-            #console.log(token)
+            token = x.toString('utf-8')
+            #console.log(token.split('\.'))
             decoded = jwt.decode(token, {complete: true})
             console.log(JSON.stringify(decoded))
             );

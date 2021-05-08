@@ -36,7 +36,7 @@ set t_Co=256
 syntax on
 "#set number
 set showmatch
-set comments=sl:/*,mb:\ *,elx:\ */
+set comments=sl:/*,fb:\ *,elx:\ */
 
 let g:mapleader = "-"
 
@@ -72,7 +72,7 @@ augroup END
 let &path.="src/include,/usr/include/AL,"
 
 "set makeprg=make\ -j9
-set makeprg=make\ %:r\ CFLAGS="-g\ -O0"\ CPPFLAGS="-g\ -O0"
+set makeprg=make\ %:r\ CC=gcc\ CFLAGS=\"-g\ -O0\ -lm\ -lncurses\ -lsdl2\"\ CPPFLAGS=\"-g\ -O0\ -lm\ -lncurses\ -lsdl2\"
 
 
 " keys
@@ -146,11 +146,12 @@ Plug 'AndrewRadev/splitjoin.vim'
 Plug 'will133/vim-dirdiff'
 
 "nerdtree - file system browsing
-Plug 'scrooloose/nerdtree'
+"Plug 'preservim/nerdtree'
 
 " colorschemes
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'altercation/vim-colors-solarized'
+Plug 'sickill/vim-monokai'
 
 " Vim Easy Plugin to format tables in markdown
 Plug 'junegunn/vim-easy-align'
@@ -165,14 +166,15 @@ Plug 'jlanzarotta/bufexplorer'
 Plug 'tpope/vim-fugitive'
 
 " NERDtree file explorer
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+"Plug 'preservim/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'preservim/nerdtree'
 
 " Haskell vim
 " Plug 'neovimhaskell/haskell-vim'
 Plug 'begriffs/haskell-vim-now'
 
 "Sublime like cntrol p menu
-Plug 'kien/ctrlp.vim'
+Plug 'ctrlpvim/ctrlp.vim'
 
 " Dot Graphviz helpers
 Plug 'wannesm/wmgraphviz.vim'
@@ -186,7 +188,7 @@ Plug 'jceb/vim-orgmode'
 " Vim prettier for nodejs prettier program for auto formatting code
 Plug 'prettier/vim-prettier', {
   \ 'do': 'yarn install',
-  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml'] }
+  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml', 'tsx', 'jsx', 'ts', 'js', 'scala', 'html', 'py'] }
 
 " Neo4j cypher language
 Plug 'neo4j-contrib/cypher-vim-syntax'
@@ -226,11 +228,31 @@ Plug 'Shougo/neosnippet-snippets'
 " Plugins for rust lang development
 Plug 'rust-lang/rust.vim'
 
+" Plugin for Dockerfile syntax
+Plug 'ekalinin/Dockerfile.vim'
+
+"REPL environments
+Plug 'sillybun/vim-repl'
+
+Plug 'lepture/vim-jinja'
+
+"Plugin for python auto import
+Plug 'mgedmin/python-imports.vim'
+Plug 'ludovicchabant/vim-gutentags'
+Plug 'skywind3000/gutentags_plus'
+
+"Journaling Plugins
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
+Plug 'aserebryakov/vim-todo-lists'
+
 " Initialize plugin system
 call plug#end()
 
 " CtrlP customizations
 set wildignore+=*/.git/*,*/.hg/*,*/.svn/*,dependencies/*
+let g:ctrlp_map='<c-p>'
+" let g:ctrlp_cmd = 'CtrlPMRU'
 
 
 
@@ -262,6 +284,7 @@ augroup GoLanguage
 augroup END
 " End Go shortcuts
 
+
 "Plugin Options
 nmap gm :LivedownToggle<CR>
 
@@ -283,7 +306,12 @@ augroup END
 au BufRead,BufNewFile *.md setlocal textwidth=80
 
 " CtrlP customizations
-let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$\|vendor$' }
+" let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$\|vendor$\|target$\|some' }
+" Ignore some folders and files for CtrlP indexing
+let g:ctrlp_custom_ignore = {
+  \ 'dir':  '\.git$\|\.yardoc\|node_modules\|log\|tmp$',
+  \ 'file': '\.so$\|\.dat$|\.DS_Store$'
+  \ }
 
 
 " Snippets
@@ -291,6 +319,7 @@ let g:deoplete#enable_at_startup = 1
 "  It is assumed you already have deoplete configured
 let g:go_snippet_engine = "neosnippet"
 let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets'
+let g:neosnippet#snippets_directory='~/my/notebook/dots/neosnippets/'
 imap <C-k>     <Plug>(neosnippet_expand_or_jump)
 smap <C-k>     <Plug>(neosnippet_expand_or_jump)
 xmap <C-k>     <Plug>(neosnippet_expand_target)
@@ -325,6 +354,133 @@ autocmd BufWritePost *.js  AsyncRun -post=checktime ./node_modules/.bin/eslint -
 autocmd BufWritePost *.ts  AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
 autocmd BufWritePost *.tsx AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
 
+autocmd BufWritePost *.scss AsyncRun -post=checktime sass % | tee %:r.css
+
 let g:ale_linters = {
             \    'typescript': ['tslint', 'tsserver'],
             \}
+
+function! BuffersList()
+  let all = range(0, bufnr('$'))
+  let res = []
+  for b in all
+    if buflisted(b)
+      call add(res, bufname(b))
+    endif
+  endfor
+  return res
+endfunction
+
+function! GrepBuffers (expression)
+  exec 'vimgrep/'.a:expression.'/ '.join(BuffersList())
+endfunction
+
+command! -nargs=+ GrepBufs call GrepBuffers(<q-args>)
+
+" helper to copy the file to clipboard
+function! _CopyFileToClip()
+    if has('macunix')
+        :w !pbcopy
+    endif
+endfunction
+
+command! CopyFileToClipBoard call _CopyFileToClip()
+
+
+" functions for math operators
+function! CalculateCursor(x, operator)
+  let p = @/
+  try
+    silent exe "s%-\\?\d*\\%#\\d\\+%\\=submatch(0) " . a:operator . " a:x%"
+    exe "normal \<C-O>"
+  catch /^Vim\%((\a\+)\)\=:E486/
+    try
+      silent exe "normal /\\%#.\\{-}\\zs\\d\\+/b\<CR>"
+      exe "s%-\\?\d*\\%#\\d\\+%\\=submatch(0) " . a:operator . " a:x%"
+      exe "normal \<C-O>"
+    catch /^Vim\%((\a\+)\)\=:E486/
+    endtry
+  finally
+    let @/ = p
+  endtry
+endfunction
+
+noremap <kMinus> <C-X>
+vnoremap <silent><kMinus> :<C-U>'<,'>call CalculateCursor(v:count1, "-")<CR>:noh<CR>gv
+noremap <kPlus> <C-A>
+vnoremap <silent><kPlus> :<C-U>'<,'>call CalculateCursor(v:count1, "+")<CR>:noh<CR>gv
+noremap <silent><kMultiply> :<C-U>call CalculateCursor(v:count1, "*")<CR>
+vnoremap <silent><kMultiply> :<C-U>'<,'>call CalculateCursor(v:count2, "*")<CR>:noh<CR>gv
+noremap <silent><kDivide> :<C-U>call CalculateCursor(v:count1, "/")<CR>
+vnoremap <silent><kDivide> :<C-U>'<,'>call CalculateCursor(v:count1, "/")<CR>:noh<CR>gv
+
+"gutenttags config
+" enable gtags module
+let g:gutentags_modules = ['ctags']
+
+" config project root markers.
+let g:gutentags_project_root = ['.root']
+
+" generate datebases in my cache directory, prevent gtags files polluting my project
+let g:gutentags_cache_dir = expand('~/.cache/tags')
+
+" change focus to quickfix window after search (optional).
+let g:gutentags_plus_switch = 1
+
+""" start: Journaling with vim
+" set header title for journal & enter writing mode
+function! JournalMode()
+    if getline("1") =~ '.*date.*'
+        execute 'normal gg'
+        let filename = '#' . ' ' . expand('%:r')
+        "call setline(1, filename)
+        exe "1" "g/#.*date/s/#.*date/" . filename
+        exe "1" "g/#.*journal_/s/#.*journal_/# "
+        "execute 'normal o'
+        execute 'Goyo'
+    endif
+endfunction
+
+" workflow for daily journal
+augroup journal
+    autocmd!
+
+    " populate journal template
+    autocmd BufNewFile journal_*.md 0r ~/my/notebook/vim/templates/journal.skeleton
+
+    " set header for the particular journal
+    autocmd VimEnter */journal/**   :call JournalMode()
+
+    " https://stackoverflow.com/questions/12094708/include-a-directory-recursively-for-vim-autocompletion
+    autocmd BufNewFile journal_*.md   set complete=~/my/notebook-private/journal/**/*
+
+    autocmd! User GoyoEnter Limelight
+    autocmd! User GoyoLeave Limelight!
+augroup END
+" autocmd VimEnter */journal/**   0r ~/my/notebook/vim/templates/journal.skeleton
+" Journaling limelight configuration. Gives distraction free writing
+" Color name (:help cterm-colors) or ANSI code
+let g:limelight_conceal_ctermfg = 'gray'
+let g:limelight_conceal_ctermfg = 240
+
+" Color name (:help gui-colors) or RGB color
+let g:limelight_conceal_guifg = 'DarkGray'
+let g:limelight_conceal_guifg = '#777777'
+
+" Default: 0.5
+let g:limelight_default_coefficient = 0.7
+
+" Number of preceding/following paragraphs to include (default: 0)
+let g:limelight_paragraph_span = 1
+
+" Beginning/end of paragraph
+"   When there's no empty line between the paragraphs
+"   and each paragraph starts with indentation
+let g:limelight_bop = '^\s'
+let g:limelight_eop = '\ze\n^\s'
+
+" Highlighting priority (default: 10)
+"   Set it to -1 not to overrule hlsearch
+let g:limelight_priority = -1
+""" end: Journaling mode end
+

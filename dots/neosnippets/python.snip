@@ -1,0 +1,23 @@
+snippet     click
+abbr        cli.group int main...
+    import csv
+    import os,sys
+    import click
+
+    @click.group()
+    @click.option('--debug/--no-debug', default=False)
+    @click.pass_context
+    def cli(ctx, debug):
+        ctx.ensure_object(dict); ctx.obj['DEBUG'] = debug
+
+    @cli.command("sample")
+    def sample():
+        pass
+
+    if __name__ == '__main__':
+        cli(obj={})
+
+snippet logging
+abbr    logging header...
+    import logging
+    logger = logging.getLogger(__name__)
