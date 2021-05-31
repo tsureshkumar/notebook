@@ -57,7 +57,7 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-conda deactivate
+conda deactivate || :
 export PATH="/usr/local/opt/ruby/bin:$PATH"
 export LDFLAGS="-L/usr/local/opt/ruby/lib"
 export CPPFLAGS="-I/usr/local/opt/ruby/include"
@@ -94,3 +94,20 @@ alias journal='vim journal_$(date -v-1d "+%Y-%m-%d").md'
 #sledge:binary path
 export SLEDGE_BIN=/Users/s0t00ov/.sledge/bin
 export PATH="${PATH}:${SLEDGE_BIN}"
+
+# ctags + bazel
+function cta () {
+  DIR=$1
+  while [ ! -f $DIR/BUILD ]
+    do DIR=`dirname $DIR`
+  done
+  echo "importing from ${DIR}"
+  ./bazel query "kind('source file', deps("//${DIR}", ${2:-1}))" \
+    | sed -e '/^@/d' -e 's/:/\//' -e 's/^\/\///' \
+    | sort \
+    >> /tmp/filedeps \
+    && ctags -L /tmp/filedeps -f tags
+  lines=`wc -l < tags | awk '{$1=$1};1'`
+  echo "indexed ${lines} tags"
+}
+
