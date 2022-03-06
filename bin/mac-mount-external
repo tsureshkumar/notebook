@@ -1,3 +1,3 @@
 #!/bin/bash
 diskutil  list
-sudo ntfs-3g /dev/disk2s1 /Volumes/Passport -olocal -oallow_other
+sudo ntfs-3g $2 /Volumes/Passport -olocal -oallow_other

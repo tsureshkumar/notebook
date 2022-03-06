@@ -90,7 +90,7 @@ abbr segment tree implementation
             }
 
             void print(string fname) {
-                sstream ss;
+                stringstream ss;
                 ss << "strict digraph G  {\n";
                 for(int i=1; i<=2*n; i++) {
                     ss << i << " [label=<" << i << "(" << arr[i] << ")>];\n";
@@ -281,6 +281,103 @@ abbr min cost max flow
       }
     };
 
+snippet maxflow
+abbr maxflow network graph algorithm from steven helix
+    typedef long long ll;
+    typedef tuple<int, ll, ll> edge;
+    typedef vector<int> vi;
+    typedef pair<int, int> ii;
+
+    const ll INF = 1e18;                             // large enough
+
+    class max_flow {
+    private:
+      int V;
+      vector<edge> EL;
+      vector<vi> AL;
+      vi d, last;
+      vector<ii> p;
+
+      bool BFS(int s, int t) {                       // find augmenting path
+        d.assign(V, -1); d[s] = 0;
+        queue<int> q({s});
+        p.assign(V, {-1, -1});                       // record BFS sp tree
+        while (!q.empty()) {
+          int u = q.front(); q.pop();
+          if (u == t) break;                         // stop as sink t reached
+          for (auto &idx : AL[u]) {                  // explore neighbors of u
+            auto &[v, cap, flow] = EL[idx];          // stored in EL[idx]
+            if ((cap-flow > 0) && (d[v] == -1))      // positive residual edge
+              d[v] = d[u]+1, q.push(v), p[v] = {u, idx}; // 3 lines in one!
+          }
+        }
+        return d[t] != -1;                           // has an augmenting path
+      }
+
+      ll send_one_flow(int s, int t, ll f = INF) {   // send one flow from s->t
+        if (s == t) return f;                        // bottleneck edge f found
+        auto &[u, idx] = p[t];
+        auto &cap = get<1>(EL[idx]), &flow = get<2>(EL[idx]);
+        ll pushed = send_one_flow(s, u, min(f, cap-flow));
+        flow += pushed;
+        auto &rflow = get<2>(EL[idx^1]);             // back edge
+        rflow -= pushed;                             // back flow
+        return pushed;
+      }
+
+      ll DFS(int u, int t, ll f = INF) {             // traverse from s->t
+        if ((u == t) || (f == 0)) return f;
+        for (int &i = last[u]; i < (int)AL[u].size(); ++i) { // from last edge
+          auto &[v, cap, flow] = EL[AL[u][i]];
+          if (d[v] != d[u]+1) continue;              // not part of layer graph
+          if (ll pushed = DFS(v, t, min(f, cap-flow))) {
+            flow += pushed;
+            auto &rflow = get<2>(EL[AL[u][i]^1]);     // back edge
+            rflow -= pushed;
+            return pushed;
+          }
+        }
+        return 0;
+      }
+
+    public:
+      max_flow(int initialV) : V(initialV) {
+        EL.clear();
+        AL.assign(V, vi());
+      }
+
+      // if you are adding a bidirectional edge u<->v with weight w into your
+      // flow graph, set directed = false (default value is directed = true)
+      void add_edge(int u, int v, ll w, bool directed = true) {
+        if (u == v) return;                          // safeguard: no self loop
+        EL.emplace_back(v, w, 0);                    // u->v, cap w, flow 0
+        AL[u].push_back(EL.size()-1);                // remember this index
+        EL.emplace_back(u, directed ? 0 : w, 0);     // back edge
+        AL[v].push_back(EL.size()-1);                // remember this index
+      }
+
+      ll edmonds_karp(int s, int t) {
+        ll mf = 0;                                   // mf stands for max_flow
+        while (BFS(s, t)) {                          // an O(V*E^2) algorithm
+          ll f = send_one_flow(s, t);                // find and send 1 flow f
+          if (f == 0) break;                         // if f == 0, stop
+          mf += f;                                   // if f > 0, add to mf
+        }
+        return mf;
+      }
+
+      ll dinic(int s, int t) {
+        ll mf = 0;                                   // mf stands for max_flow
+        while (BFS(s, t)) {                          // an O(V^2*E) algorithm
+          last.assign(V, 0);                         // important speedup
+          while (ll f = DFS(s, t))                   // exhaust blocking flow
+            mf += f;
+        }
+        return mf;
+      }
+    };
+
+
 snippet sssp_bellman_ford
 abbr    bellman ford algorithm to find shortest patfh from s to all vertices
     void sssp_bellman_ford(vector<vector<pair<int,int>>> &g, int s, vector<int> &dist) {
@@ -375,6 +472,7 @@ abbr topological sort a DAG
 snippet comp
 abbr competitive programming...
     #include <iostream>
+    #include <iomanip>
     #include <string>
     #include <sstream>
     #include <cmath>
@@ -415,6 +513,8 @@ abbr competitive programming...
     #define vii                 vector<pair<int,int>>
     #define vi                  vector<int>
     #define vvi                 vector<vector<int>>
+    #define vl                  vector<long long>
+    #define vvl                 vector<vector<long long>>
     #define rep(i,n)            for(int i=0, _##i=(n); i<_##i; ++i)
     #define dwn(i,n)            for(int i=(n); --i>=0; )
     #define ntimes(n)           while(n-- >0)
@@ -426,8 +526,8 @@ abbr competitive programming...
     #define BitLSOneRst(x)      ((x)&(x-1))
     #define inbound(x,l,r)      (l < x && x < r)
     #define inboundi(x,l,r)     (l <= x && x <= r)
-    #define overlaps(x,y,a,b)   ((min(y,a)-max(x,a)) > 0)
-    #define overlapwin(x,y,a,b) ((min(y,a)-max(x,a)))
+    #define overlaps(x,y,a,b)   ((min(y,b)-max(x,a)) > 0)
+    #define overlapwin(x,y,a,b) ((min(y,b)-max(x,a)))
     #define all(a)              (a).begin(), (a).end()
     #define bitcount            __builtin_popcount
     #define gcd                 __gcd
@@ -436,12 +536,34 @@ abbr competitive programming...
     #define seea(a,x,y)         for(int i=x;i<y;i++){cin>>a[i];}
     #define seev(v,n)           for(int i=0;i<n;i++){int x; cin>>x; v.push_back(x);}
     #define sees(s,n)           for(int i=0;i<n;i++){int x; cin>>x; s.insert(x);}
+    #define pb                  push_back
+    #define fi                  first
+    #define se                  second
+    #define setpr(x)            cout<<setprecision(x)<<fixed
 
     int main(int argc, char **argv) {
-        cin.tie(0);
-        ios::sync_with_stdio(false);
+        cin.tie(0)->sync_with_stdio(false);
 
         ${0:TARGET};
 
         return 0;
+    }
+
+snippet catalan
+abbr routine to calculate catalan in O(1) using dp, requires modpow and MD
+    #define CATALAN_MAX 1000006
+    // other approach is sigma_0_n-1(Ci*Cn-1-i) in O(n^2)
+    LL cat_dp[CATALAN_MAX];
+    void init_catalan() {
+        cat_dp[0]=1;
+        cat_dp[1]=1;
+        for(int i=2; i <CATALAN_MAX;i++) {
+            LL t = i-1;
+            LL a = (((((long long)2*t+1)*2)*cat_dp[i-1])%MD);
+            LL inv = (modpow(t+2,MD-2, MD)%MD); 
+            cat_dp[i] = (a*inv)%MD;
+        }
+    }
+    LL catalan(int n) {
+        return cat_dp[n];
     }

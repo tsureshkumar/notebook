@@ -146,12 +146,11 @@ Plug 'AndrewRadev/splitjoin.vim'
 Plug 'will133/vim-dirdiff'
 
 "nerdtree - file system browsing
-"Plug 'preservim/nerdtree'
+Plug 'scrooloose/nerdtree'
 
 " colorschemes
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'altercation/vim-colors-solarized'
-Plug 'sickill/vim-monokai'
 
 " Vim Easy Plugin to format tables in markdown
 Plug 'junegunn/vim-easy-align'
@@ -166,15 +165,14 @@ Plug 'jlanzarotta/bufexplorer'
 Plug 'tpope/vim-fugitive'
 
 " NERDtree file explorer
-"Plug 'preservim/nerdtree', { 'on':  'NERDTreeToggle' }
-Plug 'preservim/nerdtree'
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 
 " Haskell vim
 " Plug 'neovimhaskell/haskell-vim'
 Plug 'begriffs/haskell-vim-now'
 
 "Sublime like cntrol p menu
-Plug 'ctrlpvim/ctrlp.vim'
+Plug 'kien/ctrlp.vim'
 
 " Dot Graphviz helpers
 Plug 'wannesm/wmgraphviz.vim'
@@ -188,7 +186,7 @@ Plug 'jceb/vim-orgmode'
 " Vim prettier for nodejs prettier program for auto formatting code
 Plug 'prettier/vim-prettier', {
   \ 'do': 'yarn install',
-  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml', 'tsx', 'jsx', 'ts', 'js', 'scala', 'html', 'py'] }
+  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml'] }
 
 " Neo4j cypher language
 Plug 'neo4j-contrib/cypher-vim-syntax'
@@ -246,13 +244,17 @@ Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'aserebryakov/vim-todo-lists'
 
+"Plugin holding vs code like color
+Plug 'artanikin/vim-synthwave84'
+Plug 'franbach/miramare'
+Plug 'morhetz/gruvbox'
+Plug 'NLKNguyen/papercolor-theme'
+
 " Initialize plugin system
 call plug#end()
 
 " CtrlP customizations
 set wildignore+=*/.git/*,*/.hg/*,*/.svn/*,dependencies/*
-let g:ctrlp_map='<c-p>'
-" let g:ctrlp_cmd = 'CtrlPMRU'
 
 
 
@@ -260,11 +262,19 @@ let g:ctrlp_map='<c-p>'
 let g:solarized_termcolors=256
 set termguicolors
 "if has('gui_running')
-    set background=light
+"    set background=light
 " else
 "     set background=dark
 " endif
-colorscheme solarized
+set background=light
+colorscheme PaperColor
+" Enable true color 启用终端24位色
+" This is needed to run vim with pleasing colors in tmux
+if exists('+termguicolors')
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  set termguicolors
+endif
 
 
 " Development settings
@@ -283,7 +293,6 @@ augroup GoLanguage
   au FileType go :nnoremap <buffer> <silent> <Leader>i :GoImports<CR>:w<CR>
 augroup END
 " End Go shortcuts
-
 
 "Plugin Options
 nmap gm :LivedownToggle<CR>
@@ -318,8 +327,12 @@ let g:ctrlp_custom_ignore = {
 let g:deoplete#enable_at_startup = 1
 "  It is assumed you already have deoplete configured
 let g:go_snippet_engine = "neosnippet"
-let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets'
-let g:neosnippet#snippets_directory='~/my/notebook/dots/neosnippets/'
+" Enable snipMate compatibility feature.
+let g:neosnippet#enable_snipmate_compatibility = 1
+" let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets'
+let g:neosnippet#snippets_directory='~/.vim/plugged/vim-snippets/snippets'
+let g:neosnippet#snippets_directory='~/my/notebook/dots/vim-neosnippets'
+" let g:neosnippet#snippets_directory='~/.vim/plugged/vim-snippets/UltiSnips'
 imap <C-k>     <Plug>(neosnippet_expand_or_jump)
 smap <C-k>     <Plug>(neosnippet_expand_or_jump)
 xmap <C-k>     <Plug>(neosnippet_expand_target)

@@ -8,8 +8,6 @@ bindkey -e
 # The following lines were added by compinstall
 zstyle :compinstall filename '/Users/tsureshkumar/.zshrc'
 
-# mac systems, python sometimes fail to load crypto lib
-export DYLD_FALLBACK_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
 
 fpath=(
   /usr/local/share/zsh-completions
@@ -41,7 +39,7 @@ randpw(){ LC_CTYPE=C < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16};echo;}
 # to install: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 source $HOME/my/notebook/dots/dot-oh-my-zshrc
 #source $HOME/my/notebook-private/dots/dot-DO.sh
-source $HOME/my/notebook-office/dots/zshrc
+#source $HOME/my/notebook-office/dots/zshrc
 #source $HOME/projectsrc
 
 # >>> conda initialize >>>
