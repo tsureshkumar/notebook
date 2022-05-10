@@ -39,6 +39,7 @@ set showmatch
 set comments=sl:/*,fb:\ *,elx:\ */
 
 let g:mapleader = "-"
+let g:maplocalleader = "="
 
 " $VIMRUNTIME/filetype.vim recognizes only README.md as markdown file.
 " All other *.md files are recognized as modula2 files. Recognize *.md
@@ -51,9 +52,9 @@ autocmd BufNewFile,BufRead *.go,Makefile setlocal tabstop=4 noexpandtab
 " code is written to not exceed 72, 80 or 120 characters per line, then
 " one of the following commands would resize the vertical split window
 " to sufficient number of columns to read such code.
-"command Wide vertical resize 78
-"command Wider vertical resize 86
-"command Widest vertical resize 126
+command Wide vertical resize 78
+command Wider vertical resize 86
+command Widest vertical resize 126
 
 " Highlight TODO in any file.
 autocmd BufWinEnter * syntax keyword Todo TODO
@@ -113,11 +114,11 @@ if executable('ag')
   " Use ag over grep
   set grepprg=ag\ --nogroup\ --nocolor
 
-  " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
-  " let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+    " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
+    let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
 
   " ag is fast enough that CtrlP doesn't need to cache
-  " let g:ctrlp_use_caching = 0
+    let g:ctrlp_use_caching = 0
 endif
 " bind K to grep word under cursor
 nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
@@ -146,11 +147,13 @@ Plug 'AndrewRadev/splitjoin.vim'
 Plug 'will133/vim-dirdiff'
 
 "nerdtree - file system browsing
-Plug 'scrooloose/nerdtree'
+"Plug 'preservim/nerdtree'
 
 " colorschemes
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'altercation/vim-colors-solarized'
+Plug 'sickill/vim-monokai'
+Plug 'morhetz/gruvbox'
 
 " Vim Easy Plugin to format tables in markdown
 Plug 'junegunn/vim-easy-align'
@@ -165,15 +168,15 @@ Plug 'jlanzarotta/bufexplorer'
 Plug 'tpope/vim-fugitive'
 
 " NERDtree file explorer
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+"Plug 'preservim/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'preservim/nerdtree'
 
 " Haskell vim
 " Plug 'neovimhaskell/haskell-vim'
 Plug 'begriffs/haskell-vim-now'
 
 "Sublime like cntrol p menu
-Plug 'kien/ctrlp.vim'
-"Plug 'ctrlpvim/ctrlp.vim'
+Plug 'ctrlpvim/ctrlp.vim'
 " Fuzzy search alternative to ctrlp
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
@@ -259,13 +262,24 @@ Plug 'solarnz/thrift.vim'
 " Language server support for compilation (scala)
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
+" personal wiki
+" Plug 'vimwiki/vimwiki'
+Plug 'lervag/wiki.vim'
+
+" todoist
+Plug 'freitass/todo.txt-vim'
+
+" Scala code formatting
+Plug 'scalameta/coc-metals', {'do': 'yarn install --frozen-lockfile'}
+
 " Initialize plugin system
 call plug#end()
 
 " CtrlP customizations
 set wildignore+=*/.git/*,*/.hg/*,*/.svn/*,dependencies/*
-" let g:ctrlp_map='<c-p>'
-" let g:ctrlp_cmd = 'CtrlPMRU'
+let g:ctrlp_map='<c-p>'
+let g:ctrlp_cmd = 'CtrlP'
+
 " only search for files that we have indexed in /tmp/files
 nnoremap <leader>p :call  
 \ fzf#run(fzf#wrap({'source': 'cat /tmp/filedeps'}))<cr>
@@ -326,13 +340,13 @@ augroup END
 au BufRead,BufNewFile *.md setlocal textwidth=80
 
 " CtrlP customizations
-" let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$\|vendor$\|target$\|some' }
+let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$\|vendor$\|target$\|some' }
 " Ignore some folders and files for CtrlP indexing
-" let g:ctrlp_custom_ignore = {
-"   \ 'dir':  '\.git$\|\.yardoc\|node_modules\|log\|tmp$',
-"   \ 'file': '\.so$\|\.dat$|\.DS_Store$'
-"   \ }
-" 
+let g:ctrlp_custom_ignore = {
+  \ 'dir':  '\.git$\|\.yardoc\|node_modules\|log\|tmp$',
+  \ 'file': '\.so$\|\.dat$|\.DS_Store$'
+  \ }
+ 
 " Fuzzy search CtrlP alternative customizations
 " fuzzy search for file
 
@@ -361,14 +375,12 @@ nnoremap <leader>r :Rgg<cr>
 
 
 " Snippets
-let g:deoplete#enable_at_startup = 1
+" let g:deoplete#enable_at_startup = 1
 "  It is assumed you already have deoplete configured
 let g:go_snippet_engine = "neosnippet"
 " Enable snipMate compatibility feature.
 let g:neosnippet#enable_snipmate_compatibility = 1
-let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets'
-let g:neosnippet#snippets_directory='~/my/notebook/dots/neosnippets/'
-let g:neosnippet#snippets_directory='~/my/notebook-office/dots/neosnippets/'
+let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets,~/my/notebook/dots/neosnippets/,~/my/notebook-office/dots/neosnippets/'
 imap <C-k>     <Plug>(neosnippet_expand_or_jump)
 smap <C-k>     <Plug>(neosnippet_expand_or_jump)
 xmap <C-k>     <Plug>(neosnippet_expand_target)
@@ -396,6 +408,9 @@ let g:user_emmet_settings = {
     \  },
   \}
 
+" PrettierCliPath
+let g:prettier#exec_cmd_path = "~/.npm-global/bin/prettier"
+"
 " run eslint and prettier when saving javascript fies
 " the project should have run ```npm install -save-dev prettier eslint-config-prettier eslint-plugin-prettier```
 autocmd BufWritePost *.js  AsyncRun -post=checktime ./node_modules/.bin/eslint --fix %
@@ -675,3 +690,29 @@ nnoremap <silent> <space>tf :<C-u>CocCommand metals.revealInTreeView metalsPacka
 "----"
 " End Scala neo related configuration
 
+" personal wiki configuraiton
+"================================
+let g:wiki_root = '~/my/notebook-office/'
+let g:vimwiki_list = [{'path': '~/my/notebook-office/',
+                      \ 'syntax': 'markdown', 'ext': '.md',
+                      \ 'path_html': '~/Sites/wiki/',
+                      \ 'template_path': '',
+                      \ 'custom_wiki2html': '/Users/sthangavel/my/notebook/bin/vimwiki-customwiki-markdown-converter.sh'}]
+" let g:vimwiki_customwiki2html=$HOME.'/my/notebook/bin/vimwiki-customwiki-markdown-converter.sh'
+"================================
+"
+
+" Advanced tricks
+au InsertEnter * set norelativenumber
+au InsertLeave * set relativenumber
+
+au CmdLineEnter * set norelativenumber | redraw
+au CmdlineLeave * set relativenumber
+
+" Load my work vim files
+" =======================
+try
+    source ~/my/notebook-office/dots/dot-vimrc
+catch
+    " no office specific files
+endtry

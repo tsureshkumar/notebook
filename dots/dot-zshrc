@@ -28,7 +28,7 @@ plugins+=(zsh-nvm)
 
 export ZSH_THEME=bureau
 
-export PATH=/usr/local/bin:/usr/local/opt/python/libexec/bin:$PATH #home brew path
+export PATH=/opt/twitter_mde/bin:/usr/local/bin:/usr/local/opt/python/libexec/bin:$PATH #home brew path
 
 
 # generate random password
@@ -111,3 +111,43 @@ function cta () {
   echo "indexed ${lines} tags"
 }
 
+# prepare tags and ripgrep for interesting folder
+function cta_tags_ripgrip () {
+  DIR=$1
+  if [ ! -d $DIR ]; then
+    DIR=`dirname $DIR`
+  fi
+  echo "importing from ${DIR}"
+  find $DIR -iname '*.scala' >> /tmp/filedeps
+  find $DIR -iname '*.java' >> /tmp/filedeps
+  find $DIR -iname '*.py' >> /tmp/filedeps
+  ctags -L /tmp/filedeps -f tags
+  lines=`wc -l < tags | awk '{$1=$1};1'`
+  echo "indexed ${lines} tags"
+}
+
+export EDITOR=vim
+
+###-begin-web-script-content-###
+###-begin-run-completions-###
+#
+# yargs command completion script
+#
+# Installation: /Users/sthangavel/workspace/web/scripts/run null >> ~/.zshrc
+#    or /Users/sthangavel/workspace/web/scripts/run null >> ~/.zsh_profile on OSX.
+#
+_run_yargs_completions()
+{
+  local reply
+  local si=$IFS
+  IFS=$'
+' reply=($(COMP_CWORD="$((CURRENT-1))" COMP_LINE="$BUFFER" COMP_POINT="$CURSOR" /Users/sthangavel/workspace/web/scripts/run --get-yargs-completions "${words[@]}"))
+  IFS=$si
+  _describe 'values' reply
+}
+compdef _run_yargs_completions run
+###-end-run-completions-###
+###-end-web-script-content-###
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /opt/twitter_mde/bin/terraform terraform

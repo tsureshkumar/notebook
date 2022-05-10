@@ -20,3 +20,16 @@ abbr        #include<iostream> int main...
         ${1};
         return 0;
     }
+
+snippet debug
+abbr debugger... 
+    #define DEBUG 1 
+    #if DEBUG == 1
+    struct debugger{template<typename T> debugger& operator ,(const T& v){std::cout<<v<<" ";return *this;}}dbg;
+    #define debug(...) {cout << #__VA_ARGS__ << ": "; dbg,__VA_ARGS__;std::cout<<std::endl;}
+    std::string i2hex(int x) { std::stringstream s; s << std::hex << x; std::string y( s.str() ); return y; }
+    std::string i2bin(int x) {return std::bitset<32>(x).to_string(); }
+    #else
+    #define debug(...) // Just strip off all debug tokens
+    #define DEBUG 0
+    #endif
