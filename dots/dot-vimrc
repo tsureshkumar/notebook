@@ -73,7 +73,7 @@ augroup END
 let &path.="src/include,/usr/include/AL,"
 
 "set makeprg=make\ -j9
-set makeprg=make\ %:r\ CC=gcc\ CFLAGS=\"-g\ -O0\ -lm\ -lncurses\ -lsdl2\"\ CPPFLAGS=\"-g\ -O0\ -lm\ -lncurses\ -lsdl2\"
+set makeprg=make\ %:r\ CC=gcc\ CFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ -lsdl2\"\ CPPFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ -lsdl2\"
 
 
 " keys

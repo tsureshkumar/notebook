@@ -19,6 +19,7 @@ abbr #define debug...
     #else
     #define debug(...) // Just strip off all debug tokens
     #define debugv(...) // Just strip off all debug tokens
+    #define DEBUG 0
     #endif
 
 
@@ -570,3 +571,11 @@ abbr routine to calculate catalan in O(1) using dp, requires modpow and MD
     LL catalan(int n) {
         return cat_dp[n];
     }
+
+snippet complex
+abbr complex numbers for geometry
+    #include <complex>
+    typedef long double C;
+    typedef complex<C> P;
+    #define X real()
+    #define Y imag()
