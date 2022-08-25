@@ -151,3 +151,6 @@ compdef _run_yargs_completions run
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/twitter_mde/bin/terraform terraform
+
+ export PATH="$PATH":"$HOME/.pub-cache/bin"
+

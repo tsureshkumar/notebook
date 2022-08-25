@@ -1,16 +1,77 @@
 snippet     comp
-abbr        #include<iostream> int main...
+abbr comp
     #include <iostream>
-    #include <algorithm>
-    #include <vector>
+    #include <iomanip>
+    #include <string>
+    #include <sstream>
     #include <cmath>
+    #include <vector>
+    #include <queue>
+    #include <stack>
+    #include <algorithm>
     #include <map>
-    #include <set>
     #include <unordered_map>
+    #include <set>
+    #include <bitset>
     #include <unordered_set>
+    #include <random>
+    #include <functional>
+    #include <iterator>
+     
+    using namespace std;
+     
+    //----------TEMPLATES----------
+    template<typename... T>
+    void see(T&... args) { ((cin >> args), ...);}
+    template<typename... T>
+    void put(T&&... args) { ((cout << args << " "), ...);}
+    template<typename... T>
+    void putl(T&&... args) { ((cout << args << " "), ...); cout<<'\n';}
+#define error(...) { string _s = #__VA_ARGS__; replace(_s.begin(), _s.end(), ',', ' '); stringstream _ss(_s); istream_iterator<string> _it(_ss); err(_it, __VA_ARGS__); }
+    void err(istream_iterator<string> it) {}
+    template<typename T, typename... Args>
+    void err(istream_iterator<string> it, T a, Args... args) {cerr << *it << "=" << a << ", "; err(++it, args...);}
+     
+    //----------MACROS----------
+    #define LL                  long long
+    #define INF                 ((1e9))
+    #define EPS                 (0.0000001)
+    #define PI                  (acos(-1.0))
+    #define MD                  (1000000007)
+    #define ii                  pair<int,int>
+    #define vii                 vector<pair<int,int> >
+    #define vi                  vector<int>
+    #define vvi                 vector<vector<int> >
+    #define vl                  vector<long long>
+    #define vvl                 vector<vector<long long> >
+    #define rep(i,n)            for(int i=0, _##i=(n); i<_##i; ++i)
+    #define dwn(i,n)            for(int i=(n); --i>=0; )
+    #define ntimes(n)           while(n-- >0)
+    #define repr(i,l,r)         for(int i=(l), _##i=(r); i<_##i; ++i)
+    #define dwnr(i,l,r)         for(int i=(r), _##i=(l); --i>=_##i; )
+    #define repi(i,a)           for(__typeof((a).begin()) i=(a).begin(), _##i=(a).end(); i!=_##i; ++i)
+    #define dwni(i,a)           for(__typeof((a).rbegin()) i=(a).rbegin(), _##i=(a).rend(); i!=_##i; ++i)
+    #define BitLSOne(x)         ((x)&(-x))
+    #define BitLSOneRst(x)      ((x)&(x-1))
+    #define inbound(x,l,r)      (l < x && x < r)
+    #define inboundi(x,l,r)     (l <= x && x <= r)
+    #define overlaps(x,y,a,b)   ((min(y,b)-max(x,a)) > 0)
+    #define overlapwin(x,y,a,b) ((min(y,b)-max(x,a)))
+    #define all(a)              (a).begin(), (a).end()
+    #define bitcount            __builtin_popcount
+    #define gcd                 __gcd
+    #define INDEX(arr,ind)      (lower_bound(all(arr),ind)-arr.begin())
+    #define sz                  size()
+    #define seea(a,x,y)         for(int i=x;i<y;i++){cin>>a[i];}
+    #define seev(v,n)           for(int i=0;i<n;i++){int x; cin>>x; v.push_back(x);}
+    #define sees(s,n)           for(int i=0;i<n;i++){int x; cin>>x; s.insert(x);}
+    #define pb                  push_back
+    #define fi                  first
+    #define se                  second
+    #define setpr(x)            cout<<setprecision(x)<<fixed
+    #define setw(x)             cout<<setw(x)<<fixed
 
     using namespace std;
-
 
     int main(int argc, char const* argv[])
     {
@@ -23,13 +84,16 @@ abbr        #include<iostream> int main...
 
 snippet debug
 abbr debugger... 
-    #define DEBUG 1 
+    /*debug functions*/
+    #define DEBUG 0
     #if DEBUG == 1
+    #define HIGHLIGHT "\u001b[33m"
+    #define RESETHIGH "\u001b[00m"
     struct debugger{template<typename T> debugger& operator ,(const T& v){std::cout<<v<<" ";return *this;}}dbg;
-    #define debug(...) {cout << #__VA_ARGS__ << ": "; dbg,__VA_ARGS__;std::cout<<std::endl;}
-    std::string i2hex(int x) { std::stringstream s; s << std::hex << x; std::string y( s.str() ); return y; }
-    std::string i2bin(int x) {return std::bitset<32>(x).to_string(); }
+    #define debug(...) {cout << HIGHLIGHT << #__VA_ARGS__ << ": "; dbg,__VA_ARGS__;std::cout<< RESETHIGH << std::endl;}
+    #define debugv(v) {cout << HIGHLIGHT; for(__typeof(v[0]) &x:v) { std::cout << x << " "; } cout << std::endl; cout << RESETHIGH;}
     #else
     #define debug(...) // Just strip off all debug tokens
+    #define debugv(...) // Just strip off all debug tokens
     #define DEBUG 0
     #endif

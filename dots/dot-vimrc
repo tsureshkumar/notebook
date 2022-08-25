@@ -380,7 +380,7 @@ nnoremap <leader>r :Rgg<cr>
 let g:go_snippet_engine = "neosnippet"
 " Enable snipMate compatibility feature.
 let g:neosnippet#enable_snipmate_compatibility = 1
-let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets,~/my/notebook/dots/neosnippets/,~/my/notebook-office/dots/neosnippets/'
+let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets,~/my/notebook/dots/vim-neosnippets/,~/my/notebook-office/dots/neosnippets/'
 imap <C-k>     <Plug>(neosnippet_expand_or_jump)
 smap <C-k>     <Plug>(neosnippet_expand_or_jump)
 xmap <C-k>     <Plug>(neosnippet_expand_target)

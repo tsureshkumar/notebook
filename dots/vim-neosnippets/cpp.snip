@@ -11,11 +11,14 @@ abbr #define debug...
     /*debug functions*/
     #define DEBUG 1
     #if DEBUG == 1
-        struct debugger{template<typename T> debugger& operator ,(const T& v){std::cout<<v<<" ";return *this;}}dbg;
-    #define debug(...) {cout << #__VA_ARGS__ << ": "; dbg,__VA_ARGS__;std::cout<<std::endl;}
+    #define HIGHLIGHT "\u001b[33m"
+    #define RESETHIGH "\u001b[00m"
+    struct debugger{template<typename T> debugger& operator ,(const T& v){std::cout<<v<<" ";return *this;}}dbg;
+    #define debug(...) {cout << HIGHLIGHT << #__VA_ARGS__ << ": "; dbg,__VA_ARGS__;std::cout<< RESETHIGH << std::endl;}
+    #define debugv(v) {cout << HIGHLIGHT; for(__typeof(v[0]) &x:v) { std::cout << x << " "; } cout << std::endl; cout << RESETHIGH;}
     #else
     #define debug(...) // Just strip off all debug tokens
-    #define DEBUG 0
+    #define debugv(...) // Just strip off all debug tokens
     #endif
 
 
