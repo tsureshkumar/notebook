@@ -203,7 +203,7 @@ abbr min cost max flow
         return 0;
       }
 
-      void getflowdfs(int u, vector<int> &visited, vector<tuple<int,int,LL,LL>> &res) {
+      void getflowdfs(int u, vector<int> &visited, vector<tuple<int,int,LL,LL> > &res) {
           if(visited[u]) return;
           visited[u] = 1;
           for(auto ve: AL[u]) {
@@ -244,8 +244,8 @@ abbr min cost max flow
       }
 
       // return flow edges
-      vector<tuple<int,int,LL,LL>> getflow() {
-          vector<tuple<int,int,LL,LL>> res;
+      vector<tuple<int,int,LL,LL> > getflow() {
+          vector<tuple<int,int,LL,LL> > res;
           for(int i=0; i<V; i++) {
               for(auto ve: AL[i]) {
                   auto [v, cap, flow, cost] = EL[ve]; 
@@ -384,7 +384,7 @@ abbr maxflow network graph algorithm from steven helix
 
 snippet sssp_bellman_ford
 abbr    bellman ford algorithm to find shortest patfh from s to all vertices
-    void sssp_bellman_ford(vector<vector<pair<int,int>>> &g, int s, vector<int> &dist) {
+    void sssp_bellman_ford(vector<vector<pair<int,int> > > &g, int s, vector<int> &dist) {
         int n = g.size();
         dist[s] = 0;
 
@@ -421,9 +421,9 @@ abbr print graph in adj format using graphviz
 
 snippet sssp_djkstra
 abbr dkjkstra shortest path from s to t
-    int sssp_djkstra(vector<vector<pair<int,int>>> &g, int s, int t, vector<int> &dist) {
-        //priority_queue<pair<int,int>, vector<pair<int,int>>, less<int>> pq;
-        priority_queue<pair<int,int>> pq;
+    int sssp_djkstra(vector<vector<pair<int,int> > > &g, int s, int t, vector<int> &dist) {
+        //priority_queue<pair<int,int>, vector<pair<int,int> >, less<int> > pq;
+        priority_queue<pair<int,int> > pq;
         pq.push({0, s});
         dist[s] = 0;
 
@@ -463,7 +463,7 @@ abbr print a 2d matrix
 
 snippet toposort
 abbr topological sort a DAG
-    void toposort(vector<vector<int>> &g, int u, vector<int> &visited, vector<int> &path) {
+    void toposort(vector<vector<int> > &g, int u, vector<int> &visited, vector<int> &path) {
         if(visited[u]) return;
         visited[u] = 1;
         for(int j=0; j<g[u].size(); j++) {
@@ -514,11 +514,11 @@ abbr competitive programming...
     #define PI                  (acos(-1.0))
     #define MD                  (1000000007)
     #define ii                  pair<int,int>
-    #define vii                 vector<pair<int,int>>
+    #define vii                 vector<pair<int,int> >
     #define vi                  vector<int>
-    #define vvi                 vector<vector<int>>
+    #define vvi                 vector<vector<int> >
     #define vl                  vector<long long>
-    #define vvl                 vector<vector<long long>>
+    #define vvl                 vector<vector<long long> >
     #define rep(i,n)            for(int i=0, _##i=(n); i<_##i; ++i)
     #define dwn(i,n)            for(int i=(n); --i>=0; )
     #define ntimes(n)           while(n-- >0)
@@ -544,6 +544,7 @@ abbr competitive programming...
     #define fi                  first
     #define se                  second
     #define setpr(x)            cout<<setprecision(x)<<fixed
+    #define setw(x)             cout<<setw(x)<<fixed
 
     int main(int argc, char **argv) {
         cin.tie(0)->sync_with_stdio(false);
