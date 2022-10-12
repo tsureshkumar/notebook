@@ -9,7 +9,6 @@ abbr   #define INF ((int)1e9)
 snippet debug
 abbr #define debug...
     /*debug functions*/
-    #define DEBUG 1
     #if DEBUG == 1
     #define HIGHLIGHT "\u001b[33m"
     #define RESETHIGH "\u001b[00m"
@@ -61,6 +60,35 @@ abbr fenwick tree implementation for range sum and O(1) update
             }
     };
 
+snippet segtree2
+abbr top down segment tree
+    class SegmentTree2 {
+        private:
+            vi arr;
+            int m;
+        public:
+            SegmentTree2(int n) {
+                m = 1<<(int)ceil(log2(n));
+                arr.assign(2*m+5, 0);
+            }
+            void update(int i, int l, int r, int j, int v) {
+                if(l==r)  { arr[i] += v; return ; }
+                seg[i] += v;
+                int mid = (l+r)/2;
+                if(j <= mid) update(i<<1, l, mid, j, v);
+                else update(1+(i<<1), mid+1, r, j, v);
+            }
+            void update(int i, int x) { update(1,0,m-1,i,x); }
+            int query(int i, int l, int r, int a, int b) {
+                if(b < l || a > r) return 0;
+                if(a <= l && r <= b) return arr[i];
+                int mid = (l+r)/2;
+                return query(i<<1, l, mid, a, b) +
+                       query(1+(i<<1), mid+1, r, a, b);
+            }
+            int query(int a, int b) { return query(1, 0, m-1, a, b); }
+    };
+
 snippet segtree
 abbr segment tree implementation
     template<class T>
@@ -106,6 +134,96 @@ abbr segment tree implementation
                 ss << "}\n";
             }
     };
+
+snippet segtree_lazy
+abbr lazy update segment tree
+    const LL mxN = 1e5+5;
+    //LL sa[mxN], pos[mxN], tmp[mxN], lcp[mxN];
+    struct node {
+        LL sum;  // sum for the range. often rolled up from val & lazy. 
+                 // holds partial sum not applied to whole range
+        LL val;  // every node in the range will be assigned  this value if marked
+        LL lazy; // every node in the range has this but will go up/dwn
+    } seg[mxN*10]; 
+    LL mark[mxN*10];
+
+    void push(int i) {
+
+        if(mark[i]) { // if marked for assign
+            seg[i<<1].sum  = seg[1+(i<<1)].sum  = 0;
+            seg[i<<1].val  = seg[1+(i<<1)].val  = seg[i].val;
+            seg[i<<1].lazy = seg[1+(i<<1)].lazy = seg[i].lazy;
+            mark[i<<1]     = mark[1+(i<<1)]     = 1;
+            mark[i]        = 0;
+            return;
+        }
+
+        // pushing lazy values down
+        seg[i<<1].lazy     += seg[i].lazy;
+        seg[1+(i<<1)].lazy += seg[i].lazy;
+
+        // rolling up vals
+        seg[i].val +=  seg[i].lazy; seg[i].lazy = 0;
+
+    }
+
+    void update(int a, int b, LL v, int i, int l, int r) {
+        if(b < l || a > r) return;
+        if(a <= l && r <= b) {
+            seg[i].lazy += v;
+            return;
+        }
+        push(i);
+
+        int h = min(b,r) - max(l,a) + 1;
+        seg[i].sum += h*v;
+
+        LL mid = (l+r)/2;
+        update(a, b, v, i<<1,     l,     mid);
+        update(a, b, v, 1+(i<<1), mid+1, r);
+    }
+
+    LL sum(LL a, LL b, int i, int l, int r) {
+        if(b < l || a > r) return 0LL;
+        if(a <= l && r <= b) {
+            return seg[i].sum + (seg[i].val + seg[i].lazy)*(r-l+1);
+        }
+        push(i);
+
+        // rolling up vals and sum, after pushing things down
+        seg[i].val += seg[i].lazy; seg[i].lazy = 0;
+        seg[i].sum += seg[i].val * (r-l+1); seg[i].val = 0;
+
+        LL mid = (l+r)/2;
+        return   sum(a, b, i<<1,     l,  mid)
+               + sum(a, b, 1+(i<<1), mid + 1, r);
+    }
+
+    // assigns v to all elements in the range.
+    // lazily done using markers when update/sum is called further down
+    // in all cases above, value is updated top down. It never flown back
+    // here it has to flow back as we don't track partial sums at each node.
+    // so, here it re-calculates the sum from child nodes.
+    LL assign(int a, int b, LL v, int i, int l, int r) {
+        if(b < l || a > r) return seg[i].sum + (seg[i].val + seg[i].lazy)*(r-l+1);
+        if(a <= l && r <= b) {
+            seg[i].sum = 0;
+            seg[i].val = v;
+            seg[i].lazy = 0;
+            mark[i] = 1;
+            return seg[i].sum + (seg[i].val + seg[i].lazy)*(r-l+1);
+        }
+        push(i);
+
+        seg[i].val += seg[i].lazy; seg[i].lazy = 0;
+        seg[i].sum += seg[i].val * (r-l+1); seg[i].val = 0;
+
+        LL mid = (l+r)/2;
+        seg[i].sum =   assign(a, b, v, i<<1,     l,     mid)
+                     + assign(a, b, v, 1+(i<<1), mid+1, r);
+        seg[i].val = seg[i].lazy = 0;
+        return seg[i].sum;
+    }
 
 snippet modpow
 abbr pow of n to p modulus m
@@ -379,6 +497,53 @@ abbr maxflow network graph algorithm from steven helix
         }
         return mf;
       }
+
+        ll DFS2(int u, int t, vi &vis, vi & path) {             // traverse from s->t
+            if (u == t)  {
+                putl(path.sz);
+                rep(i,path.sz) put(path[i]+1); putl();
+                return 0;
+            }
+            if(vis[u]++) return 0;
+            for (int &i = last[u]; i < (int)AL[u].size(); ++i) { // from last edge
+                auto [v, cap, flow] = EL[AL[u][i]];
+                if(flow <= 0) continue;
+                debug(u+1,v+1,cap,flow);
+                path.pb(v);
+                if (ll pushed = DFS2(v, t, vis, path)) {
+                }
+                path.pop_back();
+            }
+            return 0;
+        }
+        void paths(int s, int t, int f) {
+            last.assign(V, 0);
+            vi vis(V, 0), path;
+            path.pb(0);
+            //DFS2(s,t,vis, path);
+            vvi res;
+            for(int i = 0; i <(int)AL[0].size(); i++) {
+                auto [v, cap, flow] = EL[AL[0][i]];
+                if(flow > 0) { res.pb(vi()); res.back().pb(0); res.back().pb(v); }
+            }
+            bool done = false;
+            while(!done) {
+                done = true;
+                for(auto &at: res) {
+                    int u = at.back();
+                    debug(u, at.sz);
+                    for(int i = 0; i <(int)AL[u].size(); i++) {
+                        auto &[v, cap, flow] = EL[AL[u][i]];
+                        debug(u,v,cap,flow);
+                        if(flow > 0) { at.pb(v); flow = -100; done = false; break; }
+                    }
+                }
+            }
+            for(auto &t: res) {
+                putl(t.sz);
+                for(auto v: t) put(v+1); putl();
+            }
+        }
     };
 
 
@@ -517,6 +682,7 @@ abbr competitive programming...
     #define vii                 vector<pair<int,int> >
     #define vi                  vector<int>
     #define vvi                 vector<vector<int> >
+    #define vvii                vector<vector<ii> >
     #define vl                  vector<long long>
     #define vvl                 vector<vector<long long> >
     #define rep(i,n)            for(int i=0, _##i=(n); i<_##i; ++i)
@@ -576,7 +742,143 @@ abbr routine to calculate catalan in O(1) using dp, requires modpow and MD
 snippet complex
 abbr complex numbers for geometry
     #include <complex>
-    typedef long double C;
+    typedef long long C;
     typedef complex<C> P;
     #define X real()
     #define Y imag()
+    bool comp_cmp(P a, P b) { return a.X == b.X ? a.Y < b.Y : a.X < b.Y; }
+
+snippet centroid
+abbr centroid depcomposition
+    struct CentroidDecompose {
+        vvi adj;
+        int n;
+        vi subtree_sz;
+        vi processed;
+        CentroidDecompose(int n, vvi &adj): adj(adj), n(n) {
+            subtree_sz.assign(n, 0);
+            processed.assign(n, 0);
+        }
+        int dfsSize(int u, int p) {
+            subtree_sz[u]=1;
+            for(auto v: adj[u]) { if(!processed[v] && v != p) {
+                subtree_sz[u] += dfsSize(v, u);
+            }}
+            return subtree_sz[u];
+        }
+        int getCentroid(int wanted, int u, int p) {
+            for(auto v: adj[u]) { if(!processed[v] && v != p) {
+                if(subtree_sz[v] >= wanted) {
+                    return getCentroid(wanted, v, u);
+                }
+            }}
+            return u;
+        }
+        void decompose(int orb, function<void(CentroidDecompose &c, int centroid)> &fn) {
+            int s = dfsSize(orb, orb);
+            //debug("subtree size", s);
+            int centroid = getCentroid(s>>1, orb, orb);
+            processed[centroid]++;
+            debug(centroid, s);
+
+            // solve
+            fn(*this, centroid);
+
+
+            for(auto v: adj[centroid]) { if(!processed[v]) {
+                decompose(v, fn);
+            }}
+        }
+    };
+
+snippet cairo_init
+abbr init cairo
+    cairo_surface_t *surface;
+    cairo_t *cr;
+
+    surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 120, 120);
+    cr = cairo_create (surface);
+
+snippet cairo_done
+abbr shutdown cairo
+    /* Write output and clean up */
+    cairo_surface_write_to_png (surface, "setsourcergba.png");
+    cairo_destroy (cr);
+    cairo_surface_destroy (surface);
+
+snippet raylib
+abbr game/graphics programming using raylib
+    const int screenWidth = 800;
+    const int screenHeight = 450;
+
+    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    while (!WindowShouldClose())    // Detect window close button or ESC key
+    {
+        BeginDrawing();
+
+            ClearBackground(RAYWHITE);
+
+            DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+
+        EndDrawing();
+    }
+
+    CloseWindow();        //
+
+snippet unionfind
+abbr union find data structure
+    struct UnionFind {
+        vi parent, rnk, len;
+        int n, comp, mx;
+        UnionFind(int n) : n(n) {
+            parent.assign(n, 0);
+            rnk.assign(n, 1);
+            len.assign(n, 1);
+            rep(i,n) parent[i] = i;
+            comp = n;
+            mx = 1;
+        }
+        int getParent(int u) { return (parent[u] == u) ? u : (parent[u] = getParent(parent[u])); }
+        bool isSame(int u, int v) { return getParent(u) == getParent(v); }
+        void join(int u, int v) {
+            if(!isSame(u, v)) {
+                u = getParent(u), v = getParent(v);
+                int t = len[getParent(u)] + len[getParent(v)];
+                if(rnk[u] > rnk[v]) parent[v] = u; 
+                else parent[u] = v, rnk[v]++;
+                len[getParent(u)] = len[getParent(v)] = t;
+                mx = max(mx, len[getParent(u)]);
+                comp--;
+            }
+        }
+    };
+
+snippet dag_dfs
+abbr lambda for dfs
+    function<int(int,int)> dfs=[&](int u, int p) {
+        for(auto v: adj[u]) { if(v != p) {
+            int ret = dfs(v, u);
+        }}
+        return 0;
+    };
+
+snippet reprep
+abbr 2d iteration
+    repr(i,0,n) { repr(j, 0, n) {
+    }}
+
+snippet foreach
+abbr for auto
+    for(auto v: $1) {
+    }
+
+snippet lambda
+abbr lambda
+    function<void(${1:int},${2:int})> $3 = [&]($1 a, $2 b) {
+    };
+
+snippet lambdaauto
+abbr lambda auto
+    auto $3 = [&]($1 a, $2 b) {
+    };

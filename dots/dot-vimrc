@@ -354,6 +354,8 @@ let g:ctrlp_custom_ignore = {
 nnoremap <leader>p :call
 \ fzf#run(fzf#wrap({'source': 'cat /tmp/filedeps'}))<cr>
 
+nnoremap <leader>b :Buffers<cr> 
+
 " fuzzy search within file
 nnoremap <leader>f :BLines<cr>
 " ripgrep search
@@ -716,3 +718,34 @@ try
 catch
     " no office specific files
 endtry
+
+"  Sum the numbers under the cursor
+fun! SumVis()
+    try
+        let l:a_save = @a
+        norm! gv"ay
+        let @a = substitute(@a,'[^0-9. ]',' ','g')
+        let c = 0
+        for i in split(@a)
+            let c += i
+        endfor
+        let b = len(split(@a))
+        exec "norm! '>o"
+        exec "norm! iTotal = " . c . " Count = " . b
+     finally
+        let @a = l:a_save
+     endtry
+endfun
+vnoremap <leader>s :<C-u>call SumVis()<cr>
+
+"let g:ale_linters_explicit = 1
+"let g:airline#extensions#ale#enabled = 1
+let g:ale_linters = { 'cpp': ['clang', 'g++'], 'c': ['clang'] }
+
+let g:ale_c_gcc_options     = '-Wall -O2 -Wc++17-extensions -std=c99'
+let g:ale_cpp_gcc_options   = '-Wall -O2 -Wc++17-extensions -std=c++20 '
+let g:ale_c_clang_options   = '-Wall -O2 -Wc++17-extensions -std=c99'
+let g:ale_cpp_clang_options = '-Wall -O2 -Wc++17-extensions -std=c++20'
+
+"let g:ale_c_cppcheck_options = ''
+"let g:ale_cpp_cppcheck_options = ''
