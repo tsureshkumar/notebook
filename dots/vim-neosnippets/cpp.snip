@@ -30,33 +30,27 @@ abbr fenwick tree implementation for range sum and O(1) update
             vector<T> tree;
             int n;
         public:
-            FW(int n1) {
-                int k=pow(2, ceil(log2(n1)));
-                n = k;
+            FW(int n):n(n) {
                 tree.assign(n+5, 0);
             }
 
             void add(int i, T x) {
                 i++;
-                for(int k=i; k <= n; k+=(k&-k)) {
+                for(int k=i; k < n; k+=(k&-k)) {
                     tree[k] += x;
                 }
             }
-            int rsum(int i) {
+            T sum(int i) {
+                i++;
                 T s = 0;
-                for(int k=i; k >= 1; k-=(k&-k)) {
+                for(int k=i; k > 0; k-=(k&-k)) {
                     s += tree[k];
                 }
                 return s;
             }
-            T sum(int i, int j) {
+            T rsum(int i, int j) {
                 if(i > j) swap(i, j);
-                return rsum(j+1) - rsum(i);
-            }
-            void print() {
-                for(int i=0; i<n; i++) cout << setw(3) << i; cout << "\n";
-                for(int i=0; i<n; i++) cout << setw(3) << tree[i];
-                cout << "\n";
+                return sum(j) - sum(i-1);
             }
     };
 
@@ -747,6 +741,36 @@ abbr complex numbers for geometry
     #define X real()
     #define Y imag()
     bool comp_cmp(P a, P b) { return a.X == b.X ? a.Y < b.Y : a.X < b.Y; }
+    LL dist2(P a, P b) {
+        P t = a-b;
+        return t.X*t.X+t.Y*t.Y;
+    };
+    LL where(P x, P a, P b) {
+        P m1 = x-a;
+        P m2 = x-b;
+        return (conj(m1)*m2).Y;
+    }
+    bool on(P c, P a, P b) {
+        if (where(c,a,b) == 0) {
+            return min(a.X, b.X) <= c.X && c.X <= max(a.X, b.X) &&
+             min(a.Y, b.Y) <= c.Y && c.Y <= max(a.Y, b.Y);
+        }
+        return false;
+    };
+    bool intersects(P a, P b, P c, P d) {
+        if(where(a,c,d) == 0 && where(b,c,d) == 0) { // all on same line
+            P v[] = {a,b,c,d};
+            sort(v, v+4,comp_cmp);
+            repr(i,1,4) { if (min(v[i].X, v[i].Y) < max(v[i-1].X, v[i-1].Y)) return true; }
+            return false;
+        }
+        if(a==c || a == d || b == c || b == d) return true;
+        if(where(a, c, d) * where(b,c,d) <= 0) {
+            if(where(c,a,b) * where(d,a,b) <= 0)
+                return true;
+        }
+        return false;
+    };
 
 snippet centroid
 abbr centroid depcomposition
@@ -853,6 +877,33 @@ abbr union find data structure
             }
         }
     };
+
+snippet suffix_array
+abbr suffix array and lcp
+    s += "$";
+    int m = s.sz;
+
+    vi sa(m, 0); rep(i,m) sa[i] = i;
+    vi rnk(m, 0); rep(i,m) rnk[i] = s[i];
+    for(int k=1; k < m; k <<= 1) {
+        vii p; rep(i,m) p.pb(ii(rnk[i], i+k < m ? rnk[i+k] : 0));
+        sort(all(sa), [&](int i, int j) { return p[i] < p[j]; });
+        rep(i,m) 
+            rnk[sa[i]] = i > 0 && p[sa[i]] == p[sa[i-1]] ? rnk[sa[i-1]]: i;
+    }
+    vi lcp(m, 0), phi(m, -1), plcp(m, 0);
+    repr(i,1,m) phi[sa[i]] = sa[i-1];
+    repr(i,0,m) {
+        int j = i > 0 ? plcp[i-1]-1 : 0;
+        int k = max(0, j);
+        for(; phi[i]+k<m; k++) {
+            if(s[i+k] != s[phi[i]+k]) break;
+        }
+        plcp[i] = k;
+    }
+    rep(i,m) lcp[i] = plcp[sa[i]];
+    rep(i,m) debug(i, sa[i], lcp[i], s.substr(sa[i]));
+    rep(i,m) debug(i, sa[i], phi[i], plcp[i], s.substr(i));
 
 snippet dag_dfs
 abbr lambda for dfs
