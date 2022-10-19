@@ -751,6 +751,73 @@ let g:ale_cpp_clang_options = '-Wall -O2 -Wc++17-extensions -std=c++20'
 "let g:ale_c_cppcheck_options = ''
 "let g:ale_cpp_cppcheck_options = ''
 
+" select current selection as single string instead of
+" multiple lines
+function! GetVisualSelection(mode)
+    " call with visualmode() as the argument
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end]     = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if a:mode ==# 'v'
+        " Must trim the end before the start, the beginning will shift left.
+        let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+        let lines[0] = lines[0][column_start - 1:]
+    elseif  a:mode ==# 'V'
+        " Line mode no need to trim start or end
+    elseif  a:mode == "\<c-v>"
+        " Block mode, trim every line
+        let new_lines = []
+        let i = 0
+        for line in lines
+            let lines[i] = line[column_start - 1: column_end - (&selection == 'inclusive' ? 1 : 2)]
+            let i = i + 1
+        endfor
+    else
+        return ''
+    endif
+    for line in lines
+        echom line
+    endfor
+    return join(lines, "\n")
+endfunction
+
+"create and open space separated numbers
+"as directed graph using dot command
+"useful for competitive programming
+fun! Digraph()
+    try
+        let l:a_save = @a
+        "norm! gv"ay
+        "silent! normal! gv"ay
+        if mode() ==# 'v'
+            let @a = GetVisualSelection(visualmode())
+        else 
+            echom "non visual mode"
+            normal! vip"ay
+            let @a = substitute(@a,'[^0-9. ]',' ','g')
+        endif
+        let c = split(@a)
+        let g = "digraph {\n"
+        if len(c)%2 == 0
+            let i = 0
+            while i < len(c)
+                let g = g . c[i] . " -> " . c[i+1] . "\n"
+                let i += 2
+            endwhile
+        endif
+        let g = g . "}"
+        let tmpfile = tempname()
+        echo tmpfile
+        call writefile(split(g, "\n") , tmpfile)
+        echom system("dot -Tpng -o "."/tmp/".expand("%:t").".png ".tmpfile) 
+        echom system("open "."/tmp/".expand("%:t").".png ") 
+        "echom system("dot -Tpng -o /tmp/s.png".tmpfile) 
+        call delete(tmpfile)
+     finally
+        let @a = l:a_save
+     endtry
+endfun
+
 function! OpenInSourceGraph()
     let prefix = $SOURCEGRAPH_URL . "source/-/blob/"
     let filename = trim(system('git ls-tree --name-only --full-name -- HEAD ' . expand('%')))
@@ -762,3 +829,4 @@ nnoremap <Leader>sg :call OpenInSourceGraph()<CR>
 
 """ replace selected text in visual mode. 
 vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
+
