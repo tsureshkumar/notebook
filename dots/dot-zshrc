@@ -153,4 +153,5 @@ autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/twitter_mde/bin/terraform terraform
 
  export PATH="$PATH":"$HOME/.pub-cache/bin"
+ export PATH="$PATH":"$HOME/Library/Application Support/Coursier/bin"
 
