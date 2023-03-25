@@ -781,11 +781,13 @@ function! GetVisualSelection(mode)
     return join(lines, "\n")
 endfunction
 
+
 "create and open space separated numbers
 "as directed graph using dot command
 "useful for competitive programming
-fun! Digraph()
+fun! Digraph(...)
     try
+        let directed = get(a:, 1, "->")
         let l:a_save = @a
         "norm! gv"ay
         "silent! normal! gv"ay
@@ -798,10 +800,13 @@ fun! Digraph()
         endif
         let c = split(@a)
         let g = "digraph {\n"
+        if directed != "->"
+            let g = "graph {\n"
+        endif
         if len(c)%2 == 0
             let i = 0
             while i < len(c)
-                let g = g . c[i] . " -> " . c[i+1] . "\n"
+                let g = g . c[i] . " " . directed . " " . c[i+1] . "\n"
                 let i += 2
             endwhile
         endif

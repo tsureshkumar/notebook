@@ -67,7 +67,7 @@ abbr top down segment tree
             }
             void update(int i, int l, int r, int j, int v) {
                 if(l==r)  { arr[i] += v; return ; }
-                seg[i] += v;
+                arr[i] += v;
                 int mid = (l+r)/2;
                 if(j <= mid) update(i<<1, l, mid, j, v);
                 else update(1+(i<<1), mid+1, r, j, v);
@@ -218,6 +218,79 @@ abbr lazy update segment tree
         seg[i].val = seg[i].lazy = 0;
         return seg[i].sum;
     }
+
+snippet segtree_lazy2
+abbr another simple implementation of lazy segment tree
+    #define LL long long
+    #define MX ((long long)(1e7))
+    #define INF ((long long)(1e7))
+
+    class LazySegmentTree {
+        private:
+            vector<LL> lazy, val;
+            LL n, N;
+        public:
+            LazySegmentTree(LL n): n(n) {
+                N = 4*n;
+                lazy.assign(N, 0);
+                val.assign(N, 0);
+
+            }
+
+            void build(vector<LL> v, LL i, LL l, LL r) {
+                if(l == r) val[i] = v[l];
+                else {
+                    LL m = (l+r)/2;
+                    build(v, i*2, l, m);
+                    build(v,i*2+1, m+1, r);
+                    val[i] = val[i*2] + val[i*2+1];
+                }
+            }
+
+            void push(LL i, LL l, LL r) {
+                 //printf("here %d %d %d %d\n", lazy[i], i, l, r);
+                if(lazy[i] != -INF) {
+                    //printf("here %d\n", lazy[i]);
+                    val[i] = lazy[i]*(r-l+1);
+
+                    if(l < r)
+                        lazy[i*2] = lazy[i*2+1] = lazy[i];
+
+                    lazy[i] = -INF;
+                }
+            }
+
+            void update(LL i, LL l, LL r, LL a, LL b, LL v) {
+                if(a > b) return;
+                push(i, l, r);
+                if(a == l && r == b) lazy[i] += v;
+                else {
+                    LL m = (l+r)/2;
+                    update(i*2, l, m, a, min(b,m), v);
+                    update(i*2+1, m+1, r, max(a,m+1), b, v);
+                    push(i*2, l, m);
+                    push(i*2i+1, m+1, r);
+                    val[i] = val[i*2] + val[i*2+1];
+                }
+            }
+
+            void update(LL a, LL b, LL v) { update(1, 0, n-1, a, b, v); }
+
+            int query(LL i, LL l, LL r, LL a, LL b) {
+                //printf("query: %d %d %d %d %d\n", i, l, r, a, b);
+                if(a > b) return 0;
+                push(i, l, r);
+                if(a <= l && r <= b) return val[i];
+                else {
+                    LL m = (l+r)/2;
+                    return query(i*2, l, m, a, min(b,m)) + query(i*2+1, m+1, r, max(a,m+1), b);
+                }
+            }
+
+            int query(LL a, LL b) { return query(1, 0, n-1, a, b); }
+
+    };
+
 
 snippet modpow
 abbr pow of n to p modulus m
@@ -538,6 +611,36 @@ abbr maxflow network graph algorithm from steven helix
                 for(auto v: t) put(v+1); putl();
             }
         }
+        void mincut(int s, int t, int f) {
+            vii mcut;
+            vi vis(V, 0);
+            d.assign(V, -1); d[s] = 0;
+            queue<int> q({s});
+            p.assign(V, {-1, -1});                       // record BFS sp tree
+            vis[0] = 1;
+            while (!q.empty()) {
+                int u = q.front(); q.pop();
+                if (u == t) break;                         // stop as sink t reached
+                for (auto &idx : AL[u]) {                  // explore neighbors of u
+                    auto &[v, cap, flow] = EL[idx];          // stored in EL[idx]
+                    if (!vis[v] && (cap-flow > 0) && (d[v] == -1)) {      // positive residual edge
+                        //debug(u+1, v+1, cap, flow, d[v]);
+                        vis[v]=1, d[v] = d[u]+1, q.push(v), p[v] = {u, idx}; // 3 lines in one!
+                    }
+                }
+            }
+            rep(u,V) {
+                for (auto &idx : AL[u]) {
+                    auto &[v, cap, flow] = EL[idx];
+                    //debug(u+1, v+1, vis[u], vis[v], cap, flow);
+                    if(vis[u] && !vis[v]) {
+                        mcut.pb(ii(u,v));
+                    }
+                }
+            }
+            putl(mcut.sz);
+            rep(i,mcut.sz) putl(mcut[i].fi+1, mcut[i].se+1);
+        }
     };
 
 
@@ -705,6 +808,19 @@ abbr competitive programming...
     #define se                  second
     #define setpr(x)            cout<<setprecision(x)<<fixed
     #define setw(x)             cout<<setw(x)<<fixed
+
+    /*debug functions*/
+    #if DEBUG == 1
+    #define HIGHLIGHT "\u001b[33m"
+    #define RESETHIGH "\u001b[00m"
+    struct debugger{template<typename T> debugger& operator ,(const T& v){std::cout<<v<<" ";return *this;}}dbg;
+    #define debug(...) {cout << HIGHLIGHT << #__VA_ARGS__ << ": "; dbg,__VA_ARGS__;std::cout<< RESETHIGH << std::endl;}
+    #define debugv(v) {cout << HIGHLIGHT; for(__typeof(v[0]) &x:v) { std::cout << x << " "; } cout << std::endl; cout << RESETHIGH;}
+    #else
+    #define debug(...) // Just strip off all debug tokens
+    #define debugv(...) // Just strip off all debug tokens
+    #define DEBUG 0
+    #endif
 
     int main(int argc, char **argv) {
         cin.tie(0)->sync_with_stdio(false);
@@ -905,6 +1021,45 @@ abbr suffix array and lcp
     rep(i,m) debug(i, sa[i], lcp[i], s.substr(sa[i]));
     rep(i,m) debug(i, sa[i], phi[i], plcp[i], s.substr(i));
 
+snippet SCC
+abbr strongly connected component with directed graph
+    vi vis(n, 0), vis2(n, 0);
+    vi st;
+    function<int(int,int)> dfs=[&](int u, int p) {
+        if(vis[u]++) return 0;
+        for(auto v: adj[u]) { if(v != p) {
+            dfs(v, u);
+        }}
+        st.pb(u);
+        return 0;
+    };
+
+    rep(i,n) {
+        if(!vis[i]) dfs(i, i);
+    }
+
+    vi roots(n, 0);
+    function<int(int,int,int)> dfs2=[&](int u, int p, int root) {
+        if(vis2[u]++) return 0;
+        roots[u] = root;
+        for(auto v: rev[u]) { if(v != p) {
+            dfs2(v, u, root);
+        }}
+        return 0;
+    };
+
+    vis2.assign(n, 0);
+    int cmp = 0;
+    vi rb;
+    while(!st.empty()) {
+        int u = st.back(); st.pop_back();
+        if(!vis2[u]) {
+            cmp++;
+            dfs2(u, u, u);
+            rb.pb(u);
+        }
+    }
+
 snippet dag_dfs
 abbr lambda for dfs
     function<int(int,int)> dfs=[&](int u, int p) {
@@ -933,3 +1088,4 @@ snippet lambdaauto
 abbr lambda auto
     auto $3 = [&]($1 a, $2 b) {
     };
+    
