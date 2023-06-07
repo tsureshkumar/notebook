@@ -35,7 +35,24 @@ Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'lewis6991/gitsigns.nvim'
 Plug 'epwalsh/obsidian.nvim'
+Plug 'junegunn/vim-easy-align'
+Plug 'preservim/nerdtree'
+
+if has('nvim')
+  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+else
+  Plug 'Shougo/deoplete.nvim'
+  Plug 'roxma/nvim-yarp'
+  Plug 'roxma/vim-hug-neovim-rpc'
+endif
+
+Plug 'Shougo/neosnippet.vim'
+Plug 'Shougo/neosnippet-snippets'
+
+Plug 'lervag/vimtex'
+
 call plug#end()
+
 
 " try
 "     execute 'source ' . stdpath('config') . '/private.vim'
@@ -256,6 +273,7 @@ augroup vimrc
         \ setlocal foldmethod=expr |
         \ setlocal nofoldenable
 
+
 augroup END
 
 " Write file without changing modification time
@@ -306,12 +324,14 @@ augroup end
 " lua require('gitsigns').setup()
 
 lua <<EOF
+require("utils")
 require("lsp")
 require("completion")
 require("treesitter")
 require("nullls")
 require("metals_config")
 require("telescope_config")
+require("latex")
 require("obsidian").setup({
   dir = "~/vault",
   notes_subdir = "notes",
@@ -342,3 +362,33 @@ vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
 
 nmap <leader>c :ObsidianSearch<space>
 nmap <leader>t :ObsidianToday<cr>
+
+" Start interactive EasyAlign in visual mode (e.g. vipga)
+xmap ga <Plug>(EasyAlign)
+
+" Start interactive EasyAlign for a motion/text object (e.g. gaip)
+nmap ga <Plug>(EasyAlign)
+
+" NeoSnippets Plugin key-mappings.
+" Note: It must be "imap" and "smap".  It uses <Plug> mappings.
+let g:deoplete#enable_at_startup = 1
+imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-k>     <Plug>(neosnippet_expand_target)
+
+" SuperTab like snippets behavior.
+" Note: It must be "imap" and "smap".  It uses <Plug> mappings.
+"imap <expr><TAB>
+" \ pumvisible() ? "\<C-n>" :
+" \ neosnippet#expandable_or_jumpable() ?
+" \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
+\ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+" For conceal markers.
+if has('conceal')
+  set conceallevel=2 concealcursor=niv
+endif
+
+" nnoremap <leader>c :lua require'utils'.CamelCase()<CR>
+nnoremap <Leader>s :lua require'utils'.switch_case()<CR>
