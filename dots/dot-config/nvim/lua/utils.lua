@@ -77,4 +77,11 @@ local function switch_case()
   end
 end
 
-return { switch_case = switch_case }
+local function ConvertToSnakeCase()
+    local word = vim.fn.expand("<cword>") -- Get the current word under the cursor
+    local snake_case_word = string.gsub(word, "(%w)(%u)", "%1_%2") -- Convert to snake case with underscores
+    vim.cmd("normal! viw\"sy") -- Yank the converted word to the "s" register
+    vim.cmd("normal! viwp") -- Replace the word with the converted version
+end
+
+return { switch_case = switch_case, ConvertToSnakeCase = ConvertToSnakeCase }

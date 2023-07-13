@@ -28,7 +28,7 @@ capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
 require('mason').setup()
 
-local servers = { 'pyright', 'tsserver', 'lua-language-servers' }
+local servers = { 'pyright', 'tsserver', 'lua_ls', 'yaml-language-server' }
 
 require('mason-lspconfig').setup {
   ensure_installed = servers,
@@ -46,7 +46,7 @@ local runtime_path = vim.split(package.path, ';')
 table.insert(runtime_path, 'lua/?.lua')
 table.insert(runtime_path, 'lua/?/init.lua')
 
-require('lspconfig').lua.setup {
+require('lspconfig').lua_ls.setup {
   on_attach = on_attach,
   capabilities = capabilities,
   settings = {

@@ -57,7 +57,6 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-conda deactivate || :
 export PATH="/usr/local/opt/ruby/bin:$PATH"
 export LDFLAGS="-L/usr/local/opt/ruby/lib"
 export CPPFLAGS="-I/usr/local/opt/ruby/include"
@@ -162,3 +161,7 @@ if [ -f '/Users/tsureshkumar/bin/google-cloud-sdk/path.zsh.inc' ]; then . '/User
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/tsureshkumar/bin/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tsureshkumar/bin/google-cloud-sdk/completion.zsh.inc'; fi
+
+test -f ~/.zshrc-office && source ~/.zshrc-office
+
+export PATH="/opt/homebrew/opt/node@16/bin:$PATH"
