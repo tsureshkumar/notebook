@@ -20,10 +20,13 @@ Plug 'tpope/vim-rhubarb'
 Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
+Plug 'junegunn/vim-easy-align'
+Plug 'dense-analysis/ale'
 
 Plug 'jose-elias-alvarez/null-ls.nvim'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
 Plug 'neovim/nvim-lspconfig'
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
@@ -311,6 +314,7 @@ command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 nmap <leader>h :History<cr>
 nmap <leader>b :Buffers<cr>
 nmap <leader>f :Files<cr>
+nmap <leader>F :GFiles<cr>
 nmap <leader>g :RG<space>
 " Search for current word
 nnoremap <silent> <Leader>rg :RG <C-R><C-W><CR>
@@ -331,7 +335,7 @@ require("treesitter")
 require("nullls")
 require("metals_config")
 require("telescope_config")
-require("latex")
+require("copilot-config")
 require("obsidian").setup({
   dir = "~/vault",
   notes_subdir = "notes",
@@ -369,6 +373,7 @@ xmap ga <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
 
+<<<<<<< HEAD
 " NeoSnippets Plugin key-mappings.
 " Note: It must be "imap" and "smap".  It uses <Plug> mappings.
 let g:deoplete#enable_at_startup = 1
@@ -392,3 +397,14 @@ endif
 
 " nnoremap <leader>c :lua require'utils'.CamelCase()<CR>
 nnoremap <Leader>s :lua require'utils'.switch_case()<CR>
+=======
+let g:ale_fixers = {
+\   'javascript': ['prettier'],
+\   'typescript': ['prettier'],
+\   'css': ['prettier'],
+\}
+" Run prettier on save
+let g:ale_fix_on_save = 1
+
+
+>>>>>>> d0524d9... some more

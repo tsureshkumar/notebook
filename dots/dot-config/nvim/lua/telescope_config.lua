@@ -1,4 +1,4 @@
-require("telescope.builtin").find_files {
-  path_display = { "truncate" }
-}
+--require("telescope.builtin").find_files {
+-- path_display = { "truncate" }
+-- }
 
