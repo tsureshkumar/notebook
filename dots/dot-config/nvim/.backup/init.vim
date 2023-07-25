@@ -23,7 +23,7 @@ Plug 'tpope/vim-unimpaired'
 Plug 'junegunn/vim-easy-align'
 Plug 'dense-analysis/ale'
 
-""Plug 'jose-elias-alvarez/null-ls.nvim'
+Plug 'jose-elias-alvarez/null-ls.nvim'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
@@ -40,12 +40,26 @@ Plug 'lewis6991/gitsigns.nvim'
 Plug 'epwalsh/obsidian.nvim'
 Plug 'junegunn/vim-easy-align'
 Plug 'preservim/nerdtree'
-Plug 'folke/lazydev.nvim'
+
+Plug 'github/copilot.vim'
+if has('nvim')
+  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+else
+  Plug 'Shougo/deoplete.nvim'
+  Plug 'roxma/nvim-yarp'
+  Plug 'roxma/vim-hug-neovim-rpc'
+endif
 
 Plug 'Shougo/neosnippet.vim'
 Plug 'Shougo/neosnippet-snippets'
 
 Plug 'lervag/vimtex'
+
+" golang
+Plug 'mfussenegger/nvim-dap'
+Plug 'leoluz/nvim-dap-go'
+Plug 'rcarriga/nvim-dap-ui'
+
 
 call plug#end()
 
@@ -90,8 +104,7 @@ set smartcase
 set showmatch
 set hlsearch
 " Keys
-""set pastetoggle=<Leader>tp
-nnoremap <Leader>tp :set paste!<CR>
+set pastetoggle=<Leader>tp
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>w :bdelete<cr>
 " h and l and ~ wrap over lines
@@ -323,26 +336,15 @@ augroup end
 
 lua <<EOF
 require("utils")
-require("lazydev").setup({
-  library = {
-    -- Load luvit types when the `vim.uv` word is found
-    { path = "luvit-meta/library", words = { "vim%.uv" } },
-  },
-})
 require("lsp")
 require("completion")
 require("treesitter")
--- require("nullls")
-require("metals_config")
+require("nullls")
+--require("metals_config")
 require("telescope_config")
 require("copilot-config")
-
-require("agent-bridge").setup({
-  host = "127.0.0.1",
-  port = 7777,
-  enable_shell = true, -- will prompt you before executing run_shell or shell-ish ex
-})
-
+require("latex")
+require("dap-debugger-config")
 require("obsidian").setup({
   dir = "~/vault",
   notes_subdir = "notes",
@@ -366,7 +368,6 @@ require("obsidian").setup({
     return tostring(os.date("%Y-%m-%d")) .. "-" .. suffix
   end
 })
-
 EOF
 "
 """ replace selected text in visual mode. 
@@ -380,6 +381,13 @@ xmap ga <Plug>(EasyAlign)
 
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
+
+" NeoSnippets Plugin key-mappings.
+" Note: It must be "imap" and "smap".  It uses <Plug> mappings.
+let g:deoplete#enable_at_startup = 1
+imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-k>     <Plug>(neosnippet_expand_target)
 
 " SuperTab like snippets behavior.
 " Note: It must be "imap" and "smap".  It uses <Plug> mappings.
@@ -397,65 +405,17 @@ endif
 
 " nnoremap <leader>c :lua require'utils'.CamelCase()<CR>
 nnoremap <Leader>s :lua require'utils'.switch_case()<CR>
-let g:ale_fixers = {
-\   'javascript': ['prettier'],
-\   'typescript': ['prettier'],
-\   'css': ['prettier'],
-\}
-" Run prettier on save
-let g:ale_fix_on_save = 1
+" let g:ale_fixers = {
+" \   'javascript': ['prettier'],
+" \   'typescript': ['prettier'],
+" \   'css': ['prettier'],
+" \}
+" " Run prettier on save
+" let g:ale_fix_on_save = 1
 
-" obsidian configs
-abbr dd 📅 2025-08-
-"
 
-function! PrintFriendlyReduced()
-    " 1. Save current syntax state
-    let l:old_syntax = &syntax
-    
-    " 2. Remove all colors but keep bold for keywords
-    syntax off
-    highlight clear
-    highlight Normal ctermfg=black ctermbg=white
-    highlight Bold cterm=bold gui=bold
-    highlight Statement cterm=bold gui=bold ctermfg=black
-    highlight Type cterm=bold gui=bold ctermfg=black
-    highlight Identifier cterm=bold gui=bold ctermfg=black
-
-    " 3. Generate the PostScript file and compress to PDF
-    " Uses -dPDFSETTINGS=/ebook for 150 DPI reduction (good balance of size/quality)
-    let l:ps_file = expand('%:r') . '.ps'
-    let l:pdf_file = expand('%:r') . '.pdf'
-    
-    execute 'hardcopy > ' . l:ps_file
-    
-    " Check if ps2pdf exists and run reduction command
-    if executable('ps2pdf')
-        call system('ps2pdf -dPDFSETTINGS=/ebook ' . l:ps_file . ' ' . l:pdf_file)
-        call system('rm ' . l:ps_file)
-        echo "Printed to reduced PDF: " . l:pdf_file
-    else
-        echo "Error: ps2pdf (Ghostscript) not found. Only PS file generated."
-    endif
-
-    " 4. Restore original syntax
-    if l:old_syntax != ''
-        syntax on
-    endif
-endfunction
-
-" Map to <Leader>p
-nnoremap <Leader>p :call PrintFriendlyReduced()<CR>
-
-" Map Leader + p to the new Neovim-compatible reduced print function
-" nnoremap <Leader>p :lua require('printing').print_friendly_reduced()<CR>
-"
-
-lua <<EOF
-function ReloadMyPlugin(module_name)
-  require("plenary.reload").reload_module(module_name)
-  -- You must require it again to actually load the new code into memory
-  require(module_name) 
-  vim.notify("Module '" .. module_name .. "' reloaded!", vim.log.levels.INFO)
-end
-EOF
+" copilot settings
+imap <Leader>cn <Plug>(copilot-next)
+imap <Leader>cp <Plug>(copilot-previous)
+imap <silent><script><expr> <C-K> copilot#Accept("\<CR>")
+let g:copilot_no_tab_map = v:true
