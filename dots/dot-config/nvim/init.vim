@@ -41,6 +41,7 @@ Plug 'epwalsh/obsidian.nvim'
 Plug 'junegunn/vim-easy-align'
 Plug 'preservim/nerdtree'
 
+Plug 'github/copilot.vim'
 if has('nvim')
   Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 else
@@ -53,6 +54,12 @@ Plug 'Shougo/neosnippet.vim'
 Plug 'Shougo/neosnippet-snippets'
 
 Plug 'lervag/vimtex'
+
+" golang
+Plug 'mfussenegger/nvim-dap'
+Plug 'leoluz/nvim-dap-go'
+Plug 'rcarriga/nvim-dap-ui'
+
 
 call plug#end()
 
@@ -333,9 +340,11 @@ require("lsp")
 require("completion")
 require("treesitter")
 require("nullls")
-require("metals_config")
+--require("metals_config")
 require("telescope_config")
 require("copilot-config")
+require("latex")
+require("dap-debugger-config")
 require("obsidian").setup({
   dir = "~/vault",
   notes_subdir = "notes",
@@ -373,7 +382,6 @@ xmap ga <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
 
-<<<<<<< HEAD
 " NeoSnippets Plugin key-mappings.
 " Note: It must be "imap" and "smap".  It uses <Plug> mappings.
 let g:deoplete#enable_at_startup = 1
@@ -397,14 +405,17 @@ endif
 
 " nnoremap <leader>c :lua require'utils'.CamelCase()<CR>
 nnoremap <Leader>s :lua require'utils'.switch_case()<CR>
-=======
-let g:ale_fixers = {
-\   'javascript': ['prettier'],
-\   'typescript': ['prettier'],
-\   'css': ['prettier'],
-\}
-" Run prettier on save
-let g:ale_fix_on_save = 1
+" let g:ale_fixers = {
+" \   'javascript': ['prettier'],
+" \   'typescript': ['prettier'],
+" \   'css': ['prettier'],
+" \}
+" " Run prettier on save
+" let g:ale_fix_on_save = 1
 
 
->>>>>>> d0524d9... some more
+" copilot settings
+imap <Leader>cn <Plug>(copilot-next)
+imap <Leader>cp <Plug>(copilot-previous)
+imap <silent><script><expr> <C-K> copilot#Accept("\<CR>")
+let g:copilot_no_tab_map = v:true
