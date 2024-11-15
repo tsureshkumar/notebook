@@ -26,7 +26,7 @@ Plug 'dense-analysis/ale'
 Plug 'jose-elias-alvarez/null-ls.nvim'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
+Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.2' }
 Plug 'neovim/nvim-lspconfig'
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
@@ -39,7 +39,7 @@ Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'lewis6991/gitsigns.nvim'
 Plug 'epwalsh/obsidian.nvim'
 Plug 'junegunn/vim-easy-align'
-Plug 'preservim/nerdtree'
+Plug 'scrooloose/nerdtree'
 
 Plug 'github/copilot.vim'
 if has('nvim')
@@ -53,6 +53,7 @@ endif
 Plug 'Shougo/neosnippet.vim'
 Plug 'Shougo/neosnippet-snippets'
 
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
 Plug 'lervag/vimtex'
 
 " golang
@@ -340,7 +341,9 @@ require("lsp")
 require("completion")
 require("treesitter")
 require("nullls")
---require("metals_config")
+require("metals_config")
+require("copilot-config")
+
 require("telescope_config")
 require("copilot-config")
 require("latex")
