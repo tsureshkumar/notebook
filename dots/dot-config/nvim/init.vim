@@ -23,7 +23,7 @@ Plug 'tpope/vim-unimpaired'
 Plug 'junegunn/vim-easy-align'
 Plug 'dense-analysis/ale'
 
-Plug 'jose-elias-alvarez/null-ls.nvim'
+""Plug 'jose-elias-alvarez/null-ls.nvim'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
@@ -104,7 +104,8 @@ set smartcase
 set showmatch
 set hlsearch
 " Keys
-set pastetoggle=<Leader>tp
+""set pastetoggle=<Leader>tp
+nnoremap <Leader>tp :set paste!<CR>
 nnoremap <leader><space> :noh<cr>
 nnoremap <leader>w :bdelete<cr>
 " h and l and ~ wrap over lines
@@ -339,8 +340,8 @@ require("utils")
 require("lsp")
 require("completion")
 require("treesitter")
-require("nullls")
---require("metals_config")
+-- require("nullls")
+require("metals_config")
 require("telescope_config")
 require("copilot-config")
 require("latex")
@@ -405,17 +406,55 @@ endif
 
 " nnoremap <leader>c :lua require'utils'.CamelCase()<CR>
 nnoremap <Leader>s :lua require'utils'.switch_case()<CR>
-" let g:ale_fixers = {
-" \   'javascript': ['prettier'],
-" \   'typescript': ['prettier'],
-" \   'css': ['prettier'],
-" \}
-" " Run prettier on save
-" let g:ale_fix_on_save = 1
+let g:ale_fixers = {
+\   'javascript': ['prettier'],
+\   'typescript': ['prettier'],
+\   'css': ['prettier'],
+\}
+" Run prettier on save
+let g:ale_fix_on_save = 1
 
+" obsidian configs
+abbr dd 📅 2025-08-
+"
 
-" copilot settings
-imap <Leader>cn <Plug>(copilot-next)
-imap <Leader>cp <Plug>(copilot-previous)
-imap <silent><script><expr> <C-K> copilot#Accept("\<CR>")
-let g:copilot_no_tab_map = v:true
+function! PrintFriendlyReduced()
+    " 1. Save current syntax state
+    let l:old_syntax = &syntax
+    
+    " 2. Remove all colors but keep bold for keywords
+    syntax off
+    highlight clear
+    highlight Normal ctermfg=black ctermbg=white
+    highlight Bold cterm=bold gui=bold
+    highlight Statement cterm=bold gui=bold ctermfg=black
+    highlight Type cterm=bold gui=bold ctermfg=black
+    highlight Identifier cterm=bold gui=bold ctermfg=black
+
+    " 3. Generate the PostScript file and compress to PDF
+    " Uses -dPDFSETTINGS=/ebook for 150 DPI reduction (good balance of size/quality)
+    let l:ps_file = expand('%:r') . '.ps'
+    let l:pdf_file = expand('%:r') . '.pdf'
+    
+    execute 'hardcopy > ' . l:ps_file
+    
+    " Check if ps2pdf exists and run reduction command
+    if executable('ps2pdf')
+        call system('ps2pdf -dPDFSETTINGS=/ebook ' . l:ps_file . ' ' . l:pdf_file)
+        call system('rm ' . l:ps_file)
+        echo "Printed to reduced PDF: " . l:pdf_file
+    else
+        echo "Error: ps2pdf (Ghostscript) not found. Only PS file generated."
+    endif
+
+    " 4. Restore original syntax
+    if l:old_syntax != ''
+        syntax on
+    endif
+endfunction
+
+" Map to <Leader>p
+nnoremap <Leader>p :call PrintFriendlyReduced()<CR>
+
+" Map Leader + p to the new Neovim-compatible reduced print function
+" nnoremap <Leader>p :lua require('printing').print_friendly_reduced()<CR>
