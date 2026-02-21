@@ -157,58 +157,8 @@ complete -o nospace -C /opt/twitter_mde/bin/terraform terraform
  export PATH="$PATH":"$HOME/Library/Application Support/Coursier/bin"
 
 
-[ -f "/Users/tsureshkumar/.ghcup/env" ] && . "/Users/tsureshkumar/.ghcup/env" # ghcup-env
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/tsureshkumar/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/tsureshkumar/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '/Users/tsureshkumar/bin/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/tsureshkumar/bin/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/tsureshkumar/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tsureshkumar/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
-
-
-# """ common aliases
-export MCPPROXY_PORT=7171
-function  mcpproxy {
-    docker mcp gateway run --port $MCPPROXY_PORT --transport streaming
-}
-export MLX_MODEL=mlx-community/Qwen3-4B-4bit-DWQ-053125
-function mlx_serve {
-    conda activate ai; mlx_lm.server --model $MLX_MODEL --max-tokens 5000 
-}
-export MLFLOW_PORT=5005
-function mlflow {
-    conda activate deepseek;uv run mlflow server --backend-store-uri sqlite:///$HOME/tmp/mydb.sqlite --port $MLFLOW_PORT
-}
-function runollama() {
-    export OLLAMA_FLASH_ATTENTION=1
-    export OLLAMA_KV_CACHE_TYPE=q8_0
-    export OLLAMA_DEBUG=1
-    export OLLAMA_HOST=0.0.0.0
-    ollama serve
-}
-alias ollamaserve=runollama
-export LITELLM_PORT=4000
-function litellmproxy {
-    conda activate ai;docker run --rm -v $HOME/.config/litellm/config.yaml:/app/config.yaml:rw -p $LITELLM_PORT:$LITELLM_PORT ghcr.io/berriai/litellm:main-latest --config /app/config.yaml --detailed_debug
-}
-function tmux_session_start_servers() {
-    echo "Hello"
-
-    tmux new-window -n "ollama"    'source ~/.zshrc; runollama; zsh -i '
-    tmux new-window -n "mlflow"    'source ~/.zshrc; mlflow; zsh -i '
-    tmux new-window -n "mcpproxy"  'source ~/.zshrc; mcpproxy; zsh -i '
-    tmux new-window -n "mlx_serve" 'source ~/.zshrc; mlx_serve; zsh -i '
-    tmux new-window -n "litellm"   'source ~/.zshrc; litellmproxy; zsh -i '
-
-}
-
-# Added by Antigravity
-export PATH="/Users/tsureshkumar/.antigravity/antigravity/bin:$PATH"
-
-# yazi - blazing fast terminal file manager
-function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	command yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
-	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
-	rm -f -- "$tmp"
-}
+if [ -f '/Users/tsureshkumar/bin/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/tsureshkumar/bin/google-cloud-sdk/completion.zsh.inc'; fi
