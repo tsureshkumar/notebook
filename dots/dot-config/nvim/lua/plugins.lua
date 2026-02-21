@@ -12,8 +12,14 @@ return require('packer').startup(function(use)
   use 'wbthomason/packer.nvim'
   use 'nvim-lua/plenary.nvim'
   use "mfussenegger/nvim-dap"
-   use 'neovim/nvim-lsp'
-   use 'neovim/nvim-lspconfig'
+  use 'neovim/nvim-lsp'
+  use 'neovim/nvim-lspconfig'
+
+  use {
+    "nvimtools/none-ls.nvim",
+    requires = { "nvim-lua/plenary.nvim" }
+  }
+
 
 
   use {
