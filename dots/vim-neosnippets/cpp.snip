@@ -225,71 +225,67 @@ abbr another simple implementation of lazy segment tree
     #define MX ((long long)(1e7))
     #define INF ((long long)(1e7))
 
-    class LazySegmentTree {
-        private:
-            vector<LL> lazy, val;
-            LL n, N;
-        public:
-            LazySegmentTree(LL n): n(n) {
-                N = 4*n;
-                lazy.assign(N, 0);
-                val.assign(N, 0);
-
+    struct LazySegmentTree {
+            // lazy is always for the child nodes and for propagation
+            vl tree, lazy;
+            vi hardset; // hardset[v] = 1 if the node has been set, 0 otherwise
+            LazySegmentTree (int n) {
+                tree.resize (4*n+1, 0);
+                lazy.resize (4*n+1, 0);
+                hardset.resize (4*n+1, 0);
             }
-
-            void build(vector<LL> v, LL i, LL l, LL r) {
-                if(l == r) val[i] = v[l];
-                else {
-                    LL m = (l+r)/2;
-                    build(v, i*2, l, m);
-                    build(v,i*2+1, m+1, r);
-                    val[i] = val[i*2] + val[i*2+1];
+            void push (int v, int tl, int tr) {
+                if (hardset[v] == 1) {
+                    tree[v] = lazy[v] * (tr-tl+1); // then apply if any pending lazy that happened after hardset
+                    if (tl != tr) {
+                        hardset[v*2] = hardset[v];
+                        hardset[v*2+1] = hardset[v];
+                        lazy[v*2] = lazy[v];
+                        lazy[v*2+1] = lazy[v];
+                    }
+                    lazy[v] = 0;
+                    hardset[v] = 0;
+                    return;
+                }
+                if (lazy[v] != 0) {
+                    tree[v] += lazy[v] * (tr-tl+1);
+                    if (tl != tr) {
+                        lazy[v*2] += lazy[v];
+                        lazy[v*2+1] += lazy[v];
+                    }
+                    lazy[v] = 0;
                 }
             }
-
-            void push(LL i, LL l, LL r) {
-                 //printf("here %d %d %d %d\n", lazy[i], i, l, r);
-                if(lazy[i] != -INF) {
-                    //printf("here %d\n", lazy[i]);
-                    val[i] = lazy[i]*(r-l+1);
-
-                    if(l < r)
-                        lazy[i*2] = lazy[i*2+1] = lazy[i];
-
-                    lazy[i] = -INF;
+            void update (int v, int tl, int tr, int l, int r, int add, bool isHardset = false) {
+                push (v, tl, tr);
+                if (tr < l || tl > r) return;
+                if (l <= tl && tr <= r) {
+                    lazy[v] += add;
+                    if (isHardset) {
+                        hardset[v] = 1;
+                        lazy[v] = add;
+                    }
+                    push (v, tl, tr);
+                    return;
                 }
+                int tm = (tl + tr) / 2;
+                update (v*2, tl, tm, l, min(r, tm), add, isHardset);
+                update (v*2+1, tm+1, tr, max(l, tm+1), r, add, isHardset);
+                tree[v] = tree[v*2] + tree[v*2+1];
             }
+            LL query (int v, int tl, int tr, int l, int r) {
+                push (v, tl, tr);
 
-            void update(LL i, LL l, LL r, LL a, LL b, LL v) {
-                if(a > b) return;
-                push(i, l, r);
-                if(a == l && r == b) lazy[i] += v;
-                else {
-                    LL m = (l+r)/2;
-                    update(i*2, l, m, a, min(b,m), v);
-                    update(i*2+1, m+1, r, max(a,m+1), b, v);
-                    push(i*2, l, m);
-                    push(i*2i+1, m+1, r);
-                    val[i] = val[i*2] + val[i*2+1];
-                }
+                if (tr < l || tl > r) return 0;
+
+                if (l <= tl && tr <= r) return tree[v];
+                int tm = (tl + tr) / 2;
+                return query (v*2, tl, tm, l, min(r, tm)) + query (v*2+1, tm+1, tr, max(l, tm+1), r);
             }
-
-            void update(LL a, LL b, LL v) { update(1, 0, n-1, a, b, v); }
-
-            int query(LL i, LL l, LL r, LL a, LL b) {
-                //printf("query: %d %d %d %d %d\n", i, l, r, a, b);
-                if(a > b) return 0;
-                push(i, l, r);
-                if(a <= l && r <= b) return val[i];
-                else {
-                    LL m = (l+r)/2;
-                    return query(i*2, l, m, a, min(b,m)) + query(i*2+1, m+1, r, max(a,m+1), b);
-                }
+            void set (int v, int tl, int tr, int l, int r, int x) {
+                update (v, tl, tr, l, r, x, true);
             }
-
-            int query(LL a, LL b) { return query(1, 0, n-1, a, b); }
-
-    };
+        };
 
 
 snippet modpow
@@ -802,6 +798,7 @@ abbr competitive programming...
     #define sz                  size()
     #define seea(a,x,y)         for(int i=x;i<y;i++){cin>>a[i];}
     #define seev(v,n)           for(int i=0;i<n;i++){int x; cin>>x; v.push_back(x);}
+    #define putv(v,n,k)         { for(int i=0;i<n;i++){ setw(k); cout << v[i]; } cout << "\n"; }
     #define sees(s,n)           for(int i=0;i<n;i++){int x; cin>>x; s.insert(x);}
     #define pb                  push_back
     #define fi                  first
@@ -906,10 +903,10 @@ abbr centroid depcomposition
             }}
             return subtree_sz[u];
         }
-        int getCentroid(int wanted, int u, int p) {
+        int getCentroid(int wanted_sz, int u, int p) {
             for(auto v: adj[u]) { if(!processed[v] && v != p) {
-                if(subtree_sz[v] >= wanted) {
-                    return getCentroid(wanted, v, u);
+                if(subtree_sz[v] > wanted_sz) {
+                    return getCentroid(wanted_sz, v, u);
                 }
             }}
             return u;
@@ -1088,4 +1085,341 @@ snippet lambdaauto
 abbr lambda auto
     auto $3 = [&]($1 a, $2 b) {
     };
-    
+
+snippet SparseTable
+abbr sparse table implementation for static arrays for range sum and min
+    class SparseTable {
+        public:
+            vvi dp;
+            vvi dp_sum;
+            void preprocess_min(vi &vs, int n) {
+                dp.assign(25, vi(n, 0));
+
+                copy(all(vs), dp[0].begin());
+                repr(i,1,26) {
+                    repr(j,0, n-(1<<i)+1) {
+                        dp[i][j] = min(dp[i-1][j], dp[i-1][j+(1<<(i-1))]);
+                    }
+                }
+            }
+            int query_min(int a, int b) {
+                int length = b-a+1;
+                int k = 1, j=0;
+                while( (k<<1) < length) k<<=1, j++;
+                return min(dp[j][a], dp[j][b-k+1]);
+            }
+
+            void preprocess_sum(vi &vs, int n) {
+                dp_sum.assign(25, vi(n, 0));
+
+                copy(all(vs), dp_sum[0].begin());
+                repr(i,1,26) {
+                    repr(j,0, n-(1<<i)+1) {
+                        dp_sum[i][j] = dp_sum[i-1][j] + dp_sum[i-1][j+(1<<(i-1))];
+                    }
+                }
+            }
+            int query_sum(int a, int b) {
+                int length = b-a+1;
+                int k = 1, j=0;
+                while( (k<<1) < length) k<<=1, j++;
+                return dp[j][a] + dp[j][b-k+1];
+            }
+
+    };
+
+snippet binary_jump
+abbr binary jump in a tree
+    struct BinaryJump {
+        int n;
+        int root = 0;
+
+        vvi pp;
+        vi depth;
+
+        BinaryJump(int n, int root, vi &parent) : n(n), root(root) {
+            pp.assign(26, vi(n));
+            copy(all(parent), pp[0].begin());
+            //rep(i,n) put(pp[0][i]); putl();
+
+            depth.assign(n, INF);
+
+            depth[root] = 0;
+            rep(j,n) depth[j] = min(depth[j], depth[pp[0][j]] + 1);
+
+            repr(i,1,26) {
+                rep(j,n){
+                    pp[i][j] = pp[i-1][pp[i-1][j]];
+                    depth[j] = min(depth[j], depth[pp[i][j]] + (1<<i));
+                }
+            }
+        }
+
+        int jump(int y, int d) {
+            while(d) {
+                int i=0, t=d&-d; while(t>>1) i++, t>>=1;
+                y = pp[i][y];
+                d &= (d-1);
+            }
+            return y;
+        }
+
+        int lca(int x, int y) {
+            int d1 = depth[x]; 
+            int d2 = depth[y];
+
+            if(d1 > d2) { swap(x,y); swap(d1,d2); }
+            // jump to same level
+            int d = d2-d1;
+            y = jump(y,d);
+            debug("lca========", x, y);
+
+            if(x == y) return x;
+            else {
+                // find LCA
+                dwnr(i,0,25) {
+                    int x1=pp[i][x], y1=pp[i][y];
+                    if(x1 != y1) x=x1, y=y1;
+                }
+                return pp[0][x];
+            }
+        }
+    };
+
+snippet HLD
+abbr heavy light decompose
+    template<class T>
+    struct HLD {
+        int n;
+        vector<T> &val; vector<vector<T>> &adj;
+
+        vector<T> count, parent, heavy, head, pos, depth;
+        vector<T> segtree;
+
+        int cur_pos;
+        int segsize;
+
+        HLD(int n, vi &val, vvi &adj) : n(n), val(val), adj(adj) {
+            count.assign(n, 0);
+            parent.assign(n, 0);
+            heavy.assign(n, -1);
+            head.assign(n, 0);
+            depth.assign(n, 0);
+            pos.assign(n, 0);
+
+            segsize = 1<<(int)ceil(log2(n));
+
+            segtree.assign(2*segsize+5, -INF);
+
+            cur_pos = 0;
+
+            dfs(0,0);
+            decompose(0,0);
+        }
+
+        void update(int idx, int l, int r, int i, T v) {
+            debug(idx, l, r, i, v);
+            if (l==r) segtree[idx] = v;
+            else {
+                int mid = l + (r-l)/2;
+                if(i <= mid) update(2*idx, l, mid, i, v);
+                else update(2*idx+1, mid+1, r, i, v);
+                segtree[idx] = max(segtree[2*idx], segtree[2*idx+1]);
+            }
+        }
+
+        T query(int idx, int l, int r, int i, int j) {
+            if(j < l || i > r) return -INF;
+            if(i <= l && r <= j) return segtree[idx];
+            else {
+                int mid = l + (r-l)/2;
+                return max(query(idx*2, l, mid, i, j),
+                           query(idx*2+1, mid+1, r, i, j));
+            }
+        }
+
+        int dfs(int u, int p) {
+            count[u] = 1;
+            parent[u] = p;
+            if(p != u) depth[u] = depth[p]+1;
+            int mx = -INF;
+            for(auto v: adj[u]) { if(v != p) {
+                dfs(v, u);
+                count[u] += count[v];
+                if (mx < count[v]) {
+                    mx = count[v];
+                    heavy[u] = v;
+                }
+            }}
+            return 0;
+        };
+
+        void decompose(int u, int h) {
+            head[u] = h;
+            pos[u] = cur_pos++;
+            update(1,0,segsize-1,pos[u], val[u]);
+            if(heavy[u] != -1) {
+                decompose(heavy[u], h);
+            }
+            for(auto v: adj[u]) { if(v != parent[u] && v != heavy[u]) {
+                decompose(v, v);
+            }}
+        };
+
+        void update_point(int u, T v) {
+            val[u] = v;
+            update(1,0,segsize-1,pos[u],v);
+        }
+
+        T rmax(int u, int v) {
+            T res = -INF;
+            while(head[u] != head[v]) {
+                if(depth[head[u]] < depth[head[v]]) swap(u,v);
+                res = max(res, query(1,0,segsize-1, pos[head[u]], pos[u]));
+                u = parent[head[u]];
+            }
+            if(depth[u] > depth[v]) swap(u,v);
+            res = max(res, query(1,0,segsize-1,pos[u], pos[v]));
+            return res;
+        }
+
+        void print() {
+            rep(i,2*segsize) {
+                put(segtree[i]);
+            }
+            putl();
+        }
+    };
+
+snippet algo_z
+abbr calculates the z array where element k contains prefix of lenth fwd
+    // calculate z distances
+    auto calc_z = [&](string &line, vi &z) {
+        int n = line.sz;
+        z[0] = -1;
+        int x,y;
+        x=1,y=0;
+        repr(k,1,n) {
+            int i =0;
+            if(k > y) {
+                x=y=k;
+                for(y=k,i=0; y<n; y++)
+                    if(line[i] == line[y]) z[k]++, i++;
+                    else break;
+                y--;
+            } else if(k <= y && k + z[k-x] <= y) {
+                z[k] = z[k-x];
+            } else if(k <= y && k + z[k-x] > y) {
+                z[k] = y-k+1;
+                x=k;
+                for(y++, i=z[k]; y<n; y++) {
+                    if(line[i] == line[y]) z[k]++, i++;
+                    else break;
+                }
+                y--;
+            }
+            debug(k);
+        }
+    };
+
+snippet suffix_array
+abbr build suffix array
+    auto suffix_array = [](string &line, vi &sa, vi &lcp) {
+        int n = line.sz;
+        sa.assign(n, 0);
+        iota(all(sa), 0);
+
+        vi rnk(n,0);
+        rep(i,n) rnk[i] = line[i];
+
+        auto csort = [&](vi &rnk, int k) {
+            int maxi = max(300, n);
+            vi freq(maxi, 0);
+            rep(i,n) freq[rnk[(i+k)%n]]++;
+            for(int i=0,s=0; i < maxi; i++) {
+                int t = freq[i]; freq[i] = s; s+= t; } 
+
+            vi tempSuf(n, 0);
+            repr(i,0,n) tempSuf[freq[rnk[(sa[i]+k)%n]]++] = sa[i];
+            rep(i,n) sa[i] = tempSuf[i];
+
+        };
+
+
+        for(int k=1; k < n; k<<=1) {
+            vii v;
+            rep(i,n) v.pb(ii(rnk[i], rnk[(i+k)%n]));
+            csort(rnk, k);
+            csort(rnk, 0);
+            rep(i,n)  { rnk[sa[i]] = i > 0 && v[sa[i]] == v[sa[i-1]] ? rnk[sa[i-1]] : i; }
+        }
+
+        // calc lcp
+        lcp.assign(n, 0);
+
+        vi plcp(n, 0), prev_sa(n, 0); // prev in sa
+
+        prev_sa[sa[0]] = -1;
+        repr(i,1,n) prev_sa[sa[i]] = sa[i-1];
+        rep(i,n) {
+            if(prev_sa[i] == -1) {plcp[i] = 0; continue; }
+            int j = max(0, plcp[i-1]-1);
+            int k;
+            for(k=j; prev_sa[i] + k < n; k++)
+                if(line[i+k] != line[prev_sa[i]+k]) break;
+            plcp[i] = k;
+        }
+
+        rep(i,n) lcp[i] = plcp[sa[i]];
+
+        debug("here");
+
+#if DEBUG==1
+        rep(i,n) {setw(3); put(i); } putl();
+        rep(i,n) {setw(3); put(line[i]); } putl();
+        rep(i,n) {setw(3); put(sa[i]); } putl();
+        rep(i,n) debug(i, sa[i], prev_sa[i], plcp[i], lcp[i], line.substr(sa[i]));
+#endif // DEBUG
+    };
+
+snippet kmp
+abbr kmp_algorithm for string searching
+    // calculate kmp distances
+    auto kmp_preprocess = [&](string &s, vi &kmp) {
+        int n = s.sz;
+        if(n==0) return;
+        kmp.assign(n, 0);
+        kmp[0] = -1;
+        int k = 0;
+        repr(i,1,n) {
+            while(k >= 0 && s[i] != s[k]) k=kmp[k];
+            k++;
+            kmp[i+1] = k;
+        }
+    };
+
+    auto kmp_search = [&](string &s, string &pat, vi &kmp) {
+        int n = kmp.sz;
+        if(n==0) return -1;
+        int k=0;
+        rep(i,s.sz) {
+            while(k >= 0 && s[i] != pat[k]) k = kmp[k];
+            if(k == -1) k++;
+            else {
+                int ret = i-k;
+                k++;
+                if(k == n) {
+                    return ret;
+                    // if next match is required, don't return, but do
+                    k = kmp[k];
+                }
+            }
+        }
+        return -1;
+    };
+
+snippet pbds
+abbr gnu policy based data strcture includes
+    #include <ext/pb_ds/assoc_container.hpp>
+    #include <ext/pb_ds/tree_policy.hpp>
+    using namespace __gnu_pbds;

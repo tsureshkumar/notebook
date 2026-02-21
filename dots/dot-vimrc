@@ -38,7 +38,7 @@ syntax on
 set showmatch
 set comments=sl:/*,fb:\ *,elx:\ */
 
-let g:mapleader = "-"
+let g:mapleader = "\\"
 let g:maplocalleader = "="
 
 " $VIMRUNTIME/filetype.vim recognizes only README.md as markdown file.
@@ -73,7 +73,7 @@ augroup END
 let &path.="src/include,/usr/include/AL,"
 
 "set makeprg=make\ -j9
-set makeprg=make\ %:r\ CC=g++\ CFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ -lsdl2\"\ CPPFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ -lsdl2\"
+set makeprg=make\ %:r\ CC=g++\ CFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ \"\ CPPFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ \"
 
 
 " keys
@@ -81,7 +81,8 @@ map <F4> :e %:p:s,.h$,.X123X,:s,.cpp$,.h,:s,.X123X$,.cpp,<CR>
 nnoremap <F7> :make!<cr>
 map <S-F7> :make clean all<CR>
 "run progrgam
-nnoremap <F5> :!./%:r<cr>
+nnoremap <S-F5> :!./%:r<cr>
+nnoremap <F5> :make run PROG=%<cr>
 " search next result
 noremap [q :cprev<CR>
 nnoremap ]q :cnext<CR>
@@ -358,7 +359,9 @@ nnoremap <leader>p :call
 nnoremap <leader>b :Buffers<cr> 
 
 " fuzzy search within file
-nnoremap <leader>f :BLines<cr>
+nnoremap <leader>l :BLines<cr>
+nnoremap <leader>f :Files<cr>
+nnoremap <leader>F :GFiles<cr>
 " ripgrep search
 command! -bang -nargs=* Rgg
   \ call fzf#vim#grep(
@@ -785,6 +788,7 @@ endfunction
 "create and open space separated numbers
 "as directed graph using dot command
 "useful for competitive programming
+" such as 1 2 2 3 3 4, each pair in new line
 fun! Digraph(...)
     try
         let directed = get(a:, 1, "->")
@@ -827,6 +831,7 @@ function! OpenInSourceGraph()
     let prefix = $SOURCEGRAPH_URL . "source/-/blob/"
     let filename = trim(system('git ls-tree --name-only --full-name -- HEAD ' . expand('%')))
     let lineNumber = "\\#L" . line(".")
+
     let url = prefix . filename . lineNumber
     silent exec "!open '" . url . "'"
 endfunction
@@ -835,3 +840,68 @@ nnoremap <Leader>sg :call OpenInSourceGraph()<CR>
 """ replace selected text in visual mode. 
 vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
 
+""" obsidian configs for editing in vim
+abbr dd 📅 2025-08-
+
+function! PrintFriendlyReduced()
+    " 1. Save current syntax state
+    let l:old_syntax = &syntax
+    
+    " 2. Remove all colors but keep bold for keywords
+    syntax off
+    highlight clear
+    highlight Normal ctermfg=black ctermbg=white
+    highlight Bold cterm=bold gui=bold
+    highlight Statement cterm=bold gui=bold ctermfg=black
+    highlight Type cterm=bold gui=bold ctermfg=black
+    highlight Identifier cterm=bold gui=bold ctermfg=black
+
+    " 3. Generate the PostScript file and compress to PDF
+    " Uses -dPDFSETTINGS=/ebook for 150 DPI reduction (good balance of size/quality)
+    let l:ps_file = expand('%:r') . '.ps'
+    let l:pdf_file = expand('%:r') . '.pdf'
+    
+    execute 'hardcopy > ' . l:ps_file
+    
+    " Check if ps2pdf exists and run reduction command
+    if executable('ps2pdf')
+        call system('ps2pdf -dPDFSETTINGS=/ebook ' . l:ps_file . ' ' . l:pdf_file)
+        call system('rm ' . l:ps_file)
+        echo "Printed to reduced PDF: " . l:pdf_file
+    else
+        echo "Error: ps2pdf (Ghostscript) not found. Only PS file generated."
+    endif
+
+    " 4. Restore original syntax
+    if l:old_syntax != ''
+        syntax on
+    endif
+endfunction
+
+" Map to <Leader>p
+nnoremap <Leader>p :call PrintFriendlyReduced()<CR>
+
+function! CleanSyntax()
+    syntax off
+    highlight clear
+    highlight Normal ctermfg=black ctermbg=white
+    highlight Bold cterm=bold gui=bold
+    highlight Statement cterm=bold gui=bold ctermfg=black
+    highlight Type cterm=bold gui=bold ctermfg=black
+    highlight Identifier cterm=bold gui=bold ctermfg=black
+
+    " Set a thicker font family and larger size to emphasize bolding
+    set printfont=Andale_Mono:h12
+
+
+    syntax on
+    highlight clear
+    highlight Normal guifg=#000000 guibg=#ffffff ctermfg=black ctermbg=white
+
+    " 2. Manually force keywords and other groups to BOLD + BLACK
+    " We use 'gui' for high-quality PS output and 'cterm' for terminal consistency
+    let l:bold_groups = ['Statement', 'Type', 'Identifier', 'Keyword', 'PreProc', 'Constant']
+    for group in l:bold_groups
+        execute 'highlight ' . group . ' gui=bold guifg=#000000 cterm=bold ctermfg=black'
+    endfor
+endfunction
