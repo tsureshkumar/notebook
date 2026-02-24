@@ -105,7 +105,7 @@ require("lazy").setup({
 
     -- Treesitter
     { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate", config = function()
-        require("nvim-treesitter.configs").setup({
+        require("nvim-treesitter.config").setup({
             ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "bash", "make", "cmake", "rust" },
             highlight = { enable = true },
         })
