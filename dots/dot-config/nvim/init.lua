@@ -94,6 +94,16 @@ require("lazy").setup({
     -- Themes
     { "rebelot/kanagawa.nvim", priority = 1000, config = function() vim.cmd.colorscheme("kanagawa") end },
     { "ellisonleao/gruvbox.nvim" },
+    {
+      "NLKNguyen/papercolor-theme",
+      lazy = false,
+      priority = 1000,
+      config = function()
+        vim.opt.background = "light"
+        vim.cmd("colorscheme PaperColor")
+      end
+    }, 
+
 
     -- Core Tools
     { "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" }, config = true,
