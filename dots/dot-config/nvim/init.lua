@@ -90,19 +90,33 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- Theme Configurations. Useful for zenbones
+vim.opt.termguicolors = true
+vim.g.zenbones_italic_comments = true
+vim.g.zenbones_solid_line_nr = true -- Gives the line number column a distinct background
+
 require("lazy").setup({
     -- Themes
-    { "rebelot/kanagawa.nvim", priority = 1000, config = function() vim.cmd.colorscheme("kanagawa") end },
+    { "rebelot/kanagawa.nvim", priority = 1002 },
     { "ellisonleao/gruvbox.nvim" },
+    { 'sainnhe/everforest' },
+    { 'rose-pine/neovim' },
     {
-      "NLKNguyen/papercolor-theme",
+      "zenbones-theme/zenbones.nvim",
+      dependencies = { "rktjmp/lush.nvim" },
       lazy = false,
-      priority = 1000,
+      priority = 1003,
       config = function()
+        vim.g.zenbones_darken_comments = 45 -- Improves readability on light backgrounds
+        vim.g.zenbones_lightness = "dim" -- Options: 'bright', 'dim'
+
+        -- Pick your flavor:
         vim.opt.background = "light"
-        vim.cmd("colorscheme PaperColor")
+        --vim.cmd.colorscheme("zenbones") -- Or "zenbones"
       end
-    }, 
+    },
+    { "NLKNguyen/papercolor-theme", priority = 1000, config = function() vim.opt.background = "light" vim.cmd("colorscheme PaperColor") end },
+    { "catppuccin/nvim", lazy = false, priority = 1001, name = "catppuccin", config = function() vim.cmd("colorscheme catppuccin-mocha") end },
 
 
     -- Core Tools
