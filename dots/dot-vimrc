@@ -1,7 +1,7 @@
-" Simple & Minimal Vim Configuration (Mirroring Neovim Refactoring)
+" Ultimate Nerdy Systems + Polyglot Vim Configuration
 
 " 1. Global Options
-let g:mapleader = ""
+let g:mapleader = "\\"
 let g:maplocalleader = ","
 
 set nocompatible
@@ -22,7 +22,7 @@ set relativenumber
 set cursorline
 set scrolloff=5
 set sidescrolloff=3
-set colorcolumn=80
+set colorcolumn=80,120
 set nowrap
 
 set splitbelow
@@ -32,7 +32,8 @@ set expandtab
 set shiftwidth=4
 set tabstop=4
 set textwidth=80
-set nolist
+set list
+set listchars=tab:»\ ,trail:·,nbsp:␣
 set mouse=a
 
 set ignorecase
@@ -60,28 +61,28 @@ nnoremap <leader><space> :noh<cr>
 " Close buffer
 nnoremap <leader>w :bdelete<cr>
 
-" Screen line movement
+" Systems: Quickfix & Build
+nnoremap ]q :cnext<cr>zz
+nnoremap [q :cprev<cr>zz
+nnoremap <F7> :make!<cr>
+nnoremap <S-F7> :make clean all<cr>
+nnoremap <F5> :!./%<<cr>
+
+" Navigation
 nnoremap k gk
 nnoremap j gj
 vnoremap k gk
 vnoremap j gj
-
-" jk for Esc
 inoremap jk <esc>
-
-" Centered search result
 nnoremap n nzz
 nnoremap N Nzz
-
-" Stationary Join
 nnoremap J mzJ`z
-
-" Quick Split
 nnoremap ss <C-w>s
 
-" Path copying
+" Path & Source/Header swap
 nnoremap <leader>p :let @+ = expand('%')<cr>
 nnoremap <leader>/ :let @+ = expand('%:p')<cr>
+nnoremap <A-o> :e %:p:s,.h$,.X123X,:s,.c\%[pp]$,.h,:s,.X123X$,.cpp,<CR>
 
 " Case Switching Utility
 function! SwitchCase()
@@ -104,22 +105,6 @@ function! SwitchCase()
 endfunction
 nnoremap <leader>s :call SwitchCase()<cr>
 
-" Print to PDF Utility
-function! PrintToPDF()
-    let l:file = expand("%:r")
-    syntax off
-    highlight clear
-    highlight Normal ctermfg=black ctermbg=white
-    execute "hardcopy > " . l:file . ".ps"
-    if executable("ps2pdf")
-        call system("ps2pdf -dPDFSETTINGS=/ebook " . l:file . ".ps " . l:file . ".pdf")
-        call system("rm " . l:file . ".ps")
-        echo "Printed to reduced PDF: " . l:file . ".pdf"
-    endif
-    syntax on
-endfunction
-nnoremap <leader>P :call PrintToPDF()<cr>
-
 " 3. Plugin Manager (vim-plug)
 if empty(glob('~/.vim/autoload/plug.vim'))
     silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
@@ -128,8 +113,9 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 
 call plug#begin('~/.vim/plugged')
-    " Nerdy Colorscheme
+    " Themes
     Plug 'NLKNguyen/papercolor-theme'
+    Plug 'morhetz/gruvbox'
     
     " Fuzzy Finder (FZF)
     Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -142,55 +128,63 @@ call plug#begin('~/.vim/plugged')
     " LSP / Linting / Formatting (ALE)
     Plug 'dense-analysis/ale'
     
+    " Languages (Polyglot)
+    Plug 'leafgarland/typescript-vim'
+    Plug 'pangloss/vim-javascript'
+    Plug 'mxw/vim-jsx'
+    Plug 'mattn/emmet-vim'
+    Plug 'rust-lang/rust.vim'
+    Plug 'fatih/vim-go'
+    Plug 'elmcast/elm-vim'
+    
     " Utilities
     Plug 'mbbill/undotree'
     Plug 'christoomey/vim-tmux-navigator'
-    Plug 'junegunn/vim-easy-align'
-    Plug 'lervag/vimtex'
+    Plug 'machakann/vim-highlightedyank'
     Plug 'github/copilot.vim'
     Plug 'lervag/wiki.vim'
-    Plug 'machakann/vim-highlightedyank'
+    Plug 'junegunn/vim-easy-align'
+    Plug 'lervag/vimtex'
 call plug#end()
 
-" Colorscheme Config
-set background=light
+" Appearance
+set background=dark
 colorscheme PaperColor
 
 " FZF Keymaps
 nnoremap <leader>f :Files<cr>
 nnoremap <leader>g :Rg<cr>
 nnoremap <leader>b :Buffers<cr>
-nnoremap <leader>h :History<cr>
 
-" ALE Config (Formatting on save)
+" ALE Config (Systems + Web)
+let g:ale_linters = {
+\   'c': ['clangd', 'cppcheck'],
+\   'cpp': ['clangd', 'cppcheck'],
+\   'javascript': ['eslint'],
+\   'typescript': ['tslint', 'tsserver'],
+\   'python': ['pylsp', 'flake8'],
+\}
 let g:ale_fixers = {
+\   'c': ['clang-format'],
+\   'cpp': ['clang-format'],
 \   'javascript': ['prettier'],
 \   'typescript': ['prettier'],
-\   'python': ['isort', 'black'],
-\   'lua': ['stylua'],
+\   'python': ['black', 'isort'],
 \}
 let g:ale_fix_on_save = 1
 let g:ale_sign_column_always = 1
 
-" Highlight on yank config
-let g:highlightedyank_highlight_duration = 200
+" ALE Mappings
+nmap gd <Plug>(ale_go_to_definition)
+nmap gr <Plug>(ale_find_references)
+nmap K <Plug>(ale_hover)
 
-" EasyAlign Keymaps
-xmap ga <Plug>(EasyAlign)
-nmap ga <Plug>(EasyAlign)
+" Debugger (Native Termdebug)
+if has('terminal')
+    packadd termdebug
+endif
 
-" Undotree Keymap
-nnoremap <leader>u :UndotreeToggle<cr>
-
-" Advanced tricks (Relative number toggling)
-augroup numbertoggle
-    autocmd!
-    autocmd InsertEnter * set norelativenumber
-    autocmd InsertLeave * set relativenumber
-augroup END
-
-" 4. Custom Legacy Functions (Simplified)
-" Sum Visually selected numbers
+" Custom Systems Helpers
 function! SumVis()
     try
         let l:a_save = @a
@@ -208,6 +202,14 @@ function! SumVis()
     endtry
 endfunction
 vnoremap <leader>s :<C-u>call SumVis()<cr>
+
+" Autocommands
+augroup global_cmds
+    autocmd!
+    autocmd InsertEnter * set norelativenumber
+    autocmd InsertLeave * set relativenumber
+    autocmd BufRead,BufNewFile *.h,*.c set filetype=c.doxygen
+augroup END
 
 " Load work specific settings
 if filereadable(expand("~/my/notebook-office/dots/dot-vimrc"))
