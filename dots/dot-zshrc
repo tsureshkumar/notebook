@@ -183,6 +183,8 @@ function runollama() {
     export OLLAMA_KV_CACHE_TYPE=q8_0
     export OLLAMA_DEBUG=1
     export OLLAMA_HOST=0.0.0.0
+    export OLLAMA_NUM_PARALLEL=4
+    export OLLAMA_MAX_LOADED_MODELS=4
     ollama serve
 }
 alias ollamaserve=runollama
@@ -212,3 +214,4 @@ function y() {
 	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
 	rm -f -- "$tmp"
 }
+eval "$(mise activate zsh)"

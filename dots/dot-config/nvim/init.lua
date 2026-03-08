@@ -36,7 +36,7 @@ opt.smartcase = true
 opt.showmatch = true
 opt.hlsearch = true
 
-opt.clipboard = "unnamedplus"
+opt.clipboard = "unnamed"
 opt.termguicolors = true
 opt.signcolumn = "yes"
 opt.updatetime = 250
