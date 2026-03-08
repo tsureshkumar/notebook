@@ -1,0 +1,907 @@
+" install pathogen
+"   https://github.com/tpope/vim-pathogen
+" pathogen
+" execute pathogen#infect()
+syntax on
+filetype plugin indent on
+
+set exrc
+set secure
+set modeline
+set wildmenu
+set showcmd
+set number
+set hlsearch
+set hidden
+set ruler
+" set autochdir
+set nojoinspaces
+set laststatus=2
+
+set exrc
+set secure
+
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+
+set nocompatible
+set autoindent
+set smartindent
+" wrap lines at 120 chars. 80 is somewaht antiquated with nowadays displays.
+set textwidth=120
+" turn syntax highlighting on
+set t_Co=256
+syntax on
+"#set number
+set showmatch
+set comments=sl:/*,fb:\ *,elx:\ */
+
+let g:mapleader = "\\"
+let g:maplocalleader = "="
+
+" $VIMRUNTIME/filetype.vim recognizes only README.md as markdown file.
+" All other *.md files are recognized as modula2 files. Recognize *.md
+" files as markdown files instead.
+autocmd BufNewFile,BufRead *.md,*.txt set filetype=markdown
+autocmd BufNewFile,BufRead *.go,Makefile setlocal tabstop=4 noexpandtab
+
+" While coding vertical split windows in terminals, sometimes a single
+" line of code wraps into multiple lines in vertical split window. If the
+" code is written to not exceed 72, 80 or 120 characters per line, then
+" one of the following commands would resize the vertical split window
+" to sufficient number of columns to read such code.
+command Wide vertical resize 78
+command Wider vertical resize 86
+command Widest vertical resize 126
+
+" Highlight TODO in any file.
+autocmd BufWinEnter * syntax keyword Todo TODO
+
+" Highlight trailing whitespace as error.
+autocmd BufWinEnter * syntax match Error /\s\+$/
+
+"set colorcolumn=120
+highlight ColorColumn ctermbg=darkgray
+
+augroup project
+    autocmd!
+    autocmd BufRead,BufNewFile *.h,*.c set filetype=c.doxygen
+augroup END
+
+let &path.="src/include,/usr/include/AL,"
+
+"set makeprg=make\ -j9
+set makeprg=make\ %:r\ CC=g++\ CFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ \"\ CPPFLAGS=\"-g\ -O0\ -std=c++17\ -lm\ -lncurses\ \"
+
+
+" keys
+map <F4> :e %:p:s,.h$,.X123X,:s,.cpp$,.h,:s,.X123X$,.cpp,<CR>
+nnoremap <F7> :make!<cr>
+map <S-F7> :make clean all<CR>
+"run progrgam
+nnoremap <S-F5> :!./%:r<cr>
+nnoremap <F5> :make run PROG=%<cr>
+" search next result
+noremap [q :cprev<CR>
+nnoremap ]q :cnext<CR>
+nnoremap [Q :cfirst<CR>
+nnoremap ]Q :clast<CR>
+" open current file in a new vim tab and close
+nnoremap t. :tabedit %<cr>
+nnoremap tc :tabclose<cr>
+
+let g:ycm_global_ycm_extra_conf = "~/.vim/.ycm_extra_conf.py"
+if &diff
+      " diff settings
+    map <M-Down> ]c
+    map <M-Up> [c
+    map <M-Left> do
+    map <M-Right> dp
+    map <F9> :new<CR>:read !svn diff<CR>:set syntax=diff buftype=nofile<CR>gg
+else
+    " spell settings
+    ":setlocal spell spelllang=en
+    " set the spellfile - folders must exist
+    set spellfile=~/.vim/spellfile.add
+    map <M-Down> ]s
+map <M-Up> [s
+endif
+
+
+" The Silver Searcher
+if executable('ag')
+  " Use ag over grep
+  set grepprg=ag\ --nogroup\ --nocolor
+
+    " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
+    let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+
+  " ag is fast enough that CtrlP doesn't need to cache
+    let g:ctrlp_use_caching = 0
+endif
+" bind K to grep word under cursor
+nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
+" bind \ (backward slash) to grep shortcut
+command! -nargs=+ -complete=file -bar Ag silent! grep! <args>|cwindow|redraw!
+nnoremap \ :Ag<SPACE><C-R><C-W>
+
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+
+" Specify a directory for plugins
+" - For Neovim: ~/.local/share/nvim/plugged
+" - Avoid using standard Vim directory names like 'plugin'
+call plug#begin('~/.vim/plugged')
+
+" for elm"
+Plug 'elmcast/elm-vim'
+Plug 'fatih/vim-go'
+Plug 'AndrewRadev/splitjoin.vim'
+
+" dir diff and merge
+Plug 'will133/vim-dirdiff'
+
+"nerdtree - file system browsing
+"Plug 'preservim/nerdtree'
+
+" colorschemes
+Plug 'drewtempelmeyer/palenight.vim'
+Plug 'altercation/vim-colors-solarized'
+Plug 'sickill/vim-monokai'
+Plug 'morhetz/gruvbox'
+
+" Vim Easy Plugin to format tables in markdown
+Plug 'junegunn/vim-easy-align'
+
+" Plugin to live view the markdown files
+Plug 'shime/vim-livedown'
+
+" Plugin to browse buffers easily
+Plug 'jlanzarotta/bufexplorer'
+
+" Plugin for git workflow
+Plug 'tpope/vim-fugitive'
+
+" NERDtree file explorer
+"Plug 'preservim/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'preservim/nerdtree'
+
+" Haskell vim
+" Plug 'neovimhaskell/haskell-vim'
+Plug 'begriffs/haskell-vim-now'
+
+"Sublime like cntrol p menu
+Plug 'ctrlpvim/ctrlp.vim'
+" Fuzzy search alternative to ctrlp
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+" Dot Graphviz helpers
+Plug 'wannesm/wmgraphviz.vim'
+
+" BoxDraw plugin for drawing diagrams
+" Plug 'gyim/vim-boxdraw'
+
+" Org mode equ
+Plug 'jceb/vim-orgmode'
+
+" Vim prettier for nodejs prettier program for auto formatting code
+Plug 'prettier/vim-prettier', {
+  \ 'do': 'yarn install',
+  \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue', 'yaml'] }
+
+" Neo4j cypher language
+Plug 'neo4j-contrib/cypher-vim-syntax'
+
+
+" bookmark/annotation tool
+Plug 'MattesGroeger/vim-bookmarks'
+Plug 'PProvost/vim-ps1'
+
+" reactjs development
+Plug 'pangloss/vim-javascript'
+Plug 'mxw/vim-jsx'
+Plug 'mattn/emmet-vim'
+Plug 'w0rp/ale'
+Plug 'othree/yajs.vim' " js highlighter
+
+" run async commands
+Plug 'skywind3000/asyncrun.vim'
+
+" Typescript
+Plug 'leafgarland/typescript-vim'
+Plug 'HerringtonDarkholme/yats.vim'
+Plug 'Quramy/tsuquyomi'
+
+"kotlin
+Plug 'udalov/kotlin-vim'
+
+"snippets
+" Plug 'honza/vim-snippets'
+Plug 'Shougo/deoplete.nvim'
+Plug 'roxma/nvim-yarp'
+Plug 'roxma/vim-hug-neovim-rpc'
+Plug 'Shougo/neocomplcache'
+Plug 'Shougo/neosnippet'
+Plug 'Shougo/neosnippet-snippets'
+
+" Plugins for rust lang development
+Plug 'rust-lang/rust.vim'
+
+" Plugin for Dockerfile syntax
+Plug 'ekalinin/Dockerfile.vim'
+
+"REPL environments
+Plug 'sillybun/vim-repl'
+
+Plug 'lepture/vim-jinja'
+
+"Plugin for python auto import
+Plug 'mgedmin/python-imports.vim'
+" Plug 'ludovicchabant/vim-gutentags'
+" Plug 'skywind3000/gutentags_plus'
+
+"Journaling Plugins
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
+Plug 'aserebryakov/vim-todo-lists'
+
+"Plugin holding vs code like color
+Plug 'artanikin/vim-synthwave84'
+Plug 'franbach/miramare'
+Plug 'morhetz/gruvbox'
+Plug 'NLKNguyen/papercolor-theme'
+"thrift
+Plug 'solarnz/thrift.vim'
+
+" Language server support for compilation (scala)
+" Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+" personal wiki
+" Plug 'vimwiki/vimwiki'
+Plug 'lervag/wiki.vim'
+
+" todoist
+Plug 'freitass/todo.txt-vim'
+
+" Scala code formatting
+" Plug 'scalameta/coc-metals', {'do': 'yarn install --frozen-lockfile'}
+Plug 'nvim-telescope/telescope.nvim'
+
+" Initialize plugin system
+call plug#end()
+
+" CtrlP customizations
+set wildignore+=*/.git/*,*/.hg/*,*/.svn/*,dependencies/*
+let g:ctrlp_map='<c-p>'
+let g:ctrlp_cmd = 'CtrlP'
+
+" only search for files that we have indexed in /tmp/files
+nnoremap <leader>p :call  
+\ fzf#run(fzf#wrap({'source': 'cat /tmp/filedeps'}))<cr>
+
+let g:solarized_termcolors=256
+set termguicolors
+"if has('gui_running')
+"    set background=light
+" else
+"     set background=dark
+" endif
+set background=light
+colorscheme PaperColor
+" Enable true color 启用终端24位色
+" This is needed to run vim with pleasing colors in tmux
+if exists('+termguicolors')
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  set termguicolors
+endif
+
+
+" Development settings
+set tags=./tags;
+set cscoperelative
+
+" Go shortcuts
+let g:go_auto_sameids = 1
+augroup GoLanguage
+  au!
+  au FileType go :nnoremap <buffer> <silent> <Leader>r :GoRun<CR>
+  au FileType go :nnoremap <buffer> <silent> <Leader>d :GoDoc<CR>
+  au FileType go :nnoremap <buffer> <silent> <Leader>k :GoDef<CR>
+  au FileType go :nnoremap <buffer> <silent> <Leader>t :GoTest<CR>
+  au FileType go :nnoremap <buffer> <silent> <Leader>b :GoBuild<CR>
+  au FileType go :nnoremap <buffer> <silent> <Leader>i :GoImports<CR>:w<CR>
+augroup END
+" End Go shortcuts
+
+"Plugin Options
+nmap gm :LivedownToggle<CR>
+
+
+" EasyAlign Plugin Options
+" Start interactive EasyAlign in visual mode (e.g. vipga)
+xmap ga <Plug>(EasyAlign)
+
+" Start interactive EasyAlign for a motion/text object (e.g. gaip)
+nmap ga <Plug>(EasyAlign)
+
+" C/C++ customizations
+augroup project
+    autocmd!
+    autocmd BufRead,BufNewFile *.h,*.c set filetype=c.doxygen
+augroup END
+
+" Markdown customizations
+au BufRead,BufNewFile *.md setlocal textwidth=80
+
+" CtrlP customizations
+let g:ctrlp_custom_ignore = { 'dir': 'build$\|node_modules$\|dependencies$\|vendor$\|target$\|some' }
+" Ignore some folders and files for CtrlP indexing
+let g:ctrlp_custom_ignore = {
+  \ 'dir':  '\.git$\|\.yardoc\|node_modules\|log\|tmp$',
+  \ 'file': '\.so$\|\.dat$|\.DS_Store$'
+  \ }
+ 
+" Fuzzy search CtrlP alternative customizations
+" fuzzy search for file
+
+"" nnoremap <leader>p :Files<cr>
+nnoremap <leader>p :call
+\ fzf#run(fzf#wrap({'source': 'cat /tmp/filedeps'}))<cr>
+
+nnoremap <leader>b :Buffers<cr> 
+
+" fuzzy search within file
+nnoremap <leader>l :BLines<cr>
+nnoremap <leader>f :Files<cr>
+nnoremap <leader>F :GFiles<cr>
+" ripgrep search
+command! -bang -nargs=* Rgg
+  \ call fzf#vim#grep(
+  \   'rg --max-depth=0 --column --line-number --no-heading --color=always --smart-case '.
+  \   shellescape(<q-args>).
+  \   ' '.
+  \   system('tr "\n" " " < /tmp/filedeps'),
+  \   0,
+  \   fzf#vim#with_preview(),
+  \   <bang>0)
+nnoremap <leader>r :Rgg<cr>
+
+
+
+
+
+
+
+" Snippets
+" let g:deoplete#enable_at_startup = 1
+"  It is assumed you already have deoplete configured
+let g:go_snippet_engine = "neosnippet"
+" Enable snipMate compatibility feature.
+let g:neosnippet#enable_snipmate_compatibility = 1
+let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/neosnippets,~/my/notebook/dots/vim-neosnippets/,~/my/notebook-office/dots/neosnippets/'
+imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-k>     <Plug>(neosnippet_expand_target)
+"imap <expr><TAB>
+" \ pumvisible() ? "\<C-n>" :
+" \ neosnippet#expandable_or_jumpable() ?
+" \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
+\ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+"
+" " For conceal markers.
+if has('conceal')
+  set conceallevel=2 concealcursor=niv
+endif
+
+
+" reactjs development configurations
+" for emmet plugin
+let g:user_emmet_leader_key='<Tab>'
+let g:user_emmet_settings = {
+  \  'javascript.jsx' : {
+    \      'extends' : 'jsx',
+    \  },
+  \}
+
+" PrettierCliPath
+let g:prettier#exec_cmd_path = "~/.npm-global/bin/prettier"
+"
+" run eslint and prettier when saving javascript fies
+" the project should have run ```npm install -save-dev prettier eslint-config-prettier eslint-plugin-prettier```
+autocmd BufWritePost *.js  AsyncRun -post=checktime ./node_modules/.bin/eslint --fix %
+" the project should have run ```npm install -save-dev prettier tslint```
+autocmd BufWritePost *.ts  AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
+autocmd BufWritePost *.tsx AsyncRun -post=checktime ./node_modules/.bin/tslint --fix %
+
+autocmd BufWritePost *.scss AsyncRun -post=checktime sass % | tee %:r.css
+
+let g:ale_linters = {
+            \    'typescript': ['tslint', 'tsserver'],
+            \}
+
+function! BuffersList()
+  let all = range(0, bufnr('$'))
+  let res = []
+  for b in all
+    if buflisted(b)
+      call add(res, bufname(b))
+    endif
+  endfor
+  return res
+endfunction
+
+function! GrepBuffers (expression)
+  exec 'vimgrep/'.a:expression.'/ '.join(BuffersList())
+endfunction
+
+command! -nargs=+ GrepBufs call GrepBuffers(<q-args>)
+
+" helper to copy the file to clipboard
+function! _CopyFileToClip()
+    if has('macunix')
+        :w !pbcopy
+    endif
+endfunction
+
+command! CopyFileToClipBoard call _CopyFileToClip()
+
+
+" functions for math operators
+function! CalculateCursor(x, operator)
+  let p = @/
+  try
+    silent exe "s%-\\?\d*\\%#\\d\\+%\\=submatch(0) " . a:operator . " a:x%"
+    exe "normal \<C-O>"
+  catch /^Vim\%((\a\+)\)\=:E486/
+    try
+      silent exe "normal /\\%#.\\{-}\\zs\\d\\+/b\<CR>"
+      exe "s%-\\?\d*\\%#\\d\\+%\\=submatch(0) " . a:operator . " a:x%"
+      exe "normal \<C-O>"
+    catch /^Vim\%((\a\+)\)\=:E486/
+    endtry
+  finally
+    let @/ = p
+  endtry
+endfunction
+
+noremap <kMinus> <C-X>
+vnoremap <silent><kMinus> :<C-U>'<,'>call CalculateCursor(v:count1, "-")<CR>:noh<CR>gv
+noremap <kPlus> <C-A>
+vnoremap <silent><kPlus> :<C-U>'<,'>call CalculateCursor(v:count1, "+")<CR>:noh<CR>gv
+noremap <silent><kMultiply> :<C-U>call CalculateCursor(v:count1, "*")<CR>
+vnoremap <silent><kMultiply> :<C-U>'<,'>call CalculateCursor(v:count2, "*")<CR>:noh<CR>gv
+noremap <silent><kDivide> :<C-U>call CalculateCursor(v:count1, "/")<CR>
+vnoremap <silent><kDivide> :<C-U>'<,'>call CalculateCursor(v:count1, "/")<CR>:noh<CR>gv
+
+"gutenttags config
+" enable gtags module
+" let g:gutentags_modules = ['ctags']
+
+" config project root markers.
+let g:gutentags_project_root = ['.root']
+
+" generate datebases in my cache directory, prevent gtags files polluting my project
+let g:gutentags_cache_dir = expand('~/.cache/tags')
+
+" change focus to quickfix window after search (optional).
+let g:gutentags_plus_switch = 1
+
+""" start: Journaling with vim
+" set header title for journal & enter writing mode
+function! JournalMode()
+    if getline("1") =~ '.*date.*'
+        execute 'normal gg'
+        let filename = '#' . ' ' . expand('%:r')
+        "call setline(1, filename)
+        exe "1" "g/#.*date/s/#.*date/" . filename
+        exe "1" "g/#.*journal_/s/#.*journal_/# "
+        "execute 'normal o'
+        execute 'Goyo'
+    endif
+endfunction
+
+" workflow for daily journal
+augroup journal
+    autocmd!
+
+    " populate journal template
+    autocmd BufNewFile journal_*.md 0r ~/my/notebook/vim/templates/journal.skeleton
+
+    " set header for the particular journal
+    autocmd VimEnter */journal/**   :call JournalMode()
+
+    " https://stackoverflow.com/questions/12094708/include-a-directory-recursively-for-vim-autocompletion
+    autocmd BufNewFile journal_*.md   set complete=~/my/notebook-private/journal/**/*
+
+    autocmd! User GoyoEnter Limelight
+    autocmd! User GoyoLeave Limelight!
+augroup END
+" autocmd VimEnter */journal/**   0r ~/my/notebook/vim/templates/journal.skeleton
+" Journaling limelight configuration. Gives distraction free writing
+" Color name (:help cterm-colors) or ANSI code
+let g:limelight_conceal_ctermfg = 'gray'
+let g:limelight_conceal_ctermfg = 240
+
+" Color name (:help gui-colors) or RGB color
+let g:limelight_conceal_guifg = 'DarkGray'
+let g:limelight_conceal_guifg = '#777777'
+
+" Default: 0.5
+let g:limelight_default_coefficient = 0.7
+
+" Number of preceding/following paragraphs to include (default: 0)
+let g:limelight_paragraph_span = 1
+
+" Beginning/end of paragraph
+"   When there's no empty line between the paragraphs
+"   and each paragraph starts with indentation
+let g:limelight_bop = '^\s'
+let g:limelight_eop = '\ze\n^\s'
+
+" Highlighting priority (default: 10)
+"   Set it to -1 not to overrule hlsearch
+let g:limelight_priority = -1
+""" end: Journaling mode end
+
+" Scala Metals related config
+"-------"
+autocmd FileType json syntax match Comment +\/\/.\+$+
+" If hidden is not set, TextEdit might fail.
+set hidden
+
+" Some servers have issues with backup files
+set nobackup
+set nowritebackup
+
+" You will have a bad experience with diagnostic messages with the default 4000.
+set updatetime=300
+
+" Don't give |ins-completion-menu| messages.
+set shortmess+=c
+
+" Always show signcolumns
+set signcolumn=yes
+
+" Help Vim recognize *.sbt and *.sc as Scala files
+au BufRead,BufNewFile *.sbt,*.sc set filetype=scala
+
+" Use tab for trigger completion with characters ahead and navigate.
+" Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
+" inoremap <silent><expr> <TAB>
+"       \ pumvisible() ? "\<C-n>" :
+"       \ <SID>check_back_space() ? "\<TAB>" :
+"       \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+" Used in the tab autocompletion for coc
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Use <c-space> to trigger completion.
+" if has('nvim')
+"   inoremap <silent><expr> <c-space> coc#refresh()
+" else
+"   inoremap <silent><expr> <c-@> coc#refresh()
+" endif
+
+" Make <CR> auto-select the first completion item and notify coc.nvim to
+" format on enter, <cr> could be remapped by other vim plugin
+" inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+"                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+" Use `[g` and `]g` to navigate diagnostics
+" nmap <silent> [g <Plug>(coc-diagnostic-prev)
+" nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+"" Remap keys for gotos
+"nmap <silent> gd <Plug>(coc-definition)
+" nmap <silent> gy <Plug>(coc-type-definition)
+" nmap <silent> gi <Plug>(coc-implementation)
+" nmap <silent> gr <Plug>(coc-references)
+" 
+" " Used to expand decorations in worksheets
+" nmap <Leader>ws <Plug>(coc-metals-expand-decoration)
+
+" Use K to either doHover or show documentation in preview window
+nnoremap <silent> K :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  "elseif (coc#rpc#ready())
+  "  call CocActionAsync('doHover')
+  else
+    execute '!' . &keywordprg . " " . expand('<cword>')
+  endif
+endfunction
+
+" Highlight symbol under cursor on CursorHold
+" autocmd CursorHold * silent call CocActionAsync('highlight')
+
+" Remap for rename current word
+" nmap <leader>rn <Plug>(coc-rename)
+
+"augroup mygroup
+"  autocmd!
+"  " Update signature help on jump placeholder
+"  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+"augroup end
+
+" Applying codeAction to the selected region.
+" Example: `<leader>aap` for current paragraph
+" xmap <leader>a  <Plug>(coc-codeaction-selected)
+" nmap <leader>a  <Plug>(coc-codeaction-selected)
+
+" Remap keys for applying codeAction to the current buffer.
+" nmap <leader>ac  <Plug>(coc-codeaction)
+" " Apply AutoFix to problem on the current line.
+" nmap <leader>qf  <Plug>(coc-fix-current)
+" 
+" Use `:Format` to format current buffer
+"command! -nargs=0 Format :call CocAction('format')
+"
+"" Use `:Fold` to fold current buffer
+"command! -nargs=? Fold :call     CocAction('fold', <f-args>)
+"
+" Trigger for code actions
+" Make sure `"codeLens.enable": true` is set in your coc config
+"nnoremap <leader>cl :<C-u>call CocActionAsync('codeLensAction')<CR>
+
+"" Mappings for CoCList
+"" Show all diagnostics.
+"nnoremap <silent><nowait> <space>a  :<C-u>CocList diagnostics<cr>
+"" Manage extensions.
+"nnoremap <silent><nowait> <space>e  :<C-u>CocList extensions<cr>
+"" Show commands.
+"nnoremap <silent><nowait> <space>c  :<C-u>CocList commands<cr>
+"" Find symbol of current document.
+"nnoremap <silent><nowait> <space>o  :<C-u>CocList outline<cr>
+"" Search workspace symbols.
+"nnoremap <silent><nowait> <space>s  :<C-u>CocList -I symbols<cr>
+"" Do default action for next item.
+"nnoremap <silent><nowait> <space>j  :<C-u>CocNext<CR>
+"" Do default action for previous item.
+"nnoremap <silent><nowait> <space>k  :<C-u>CocPrev<CR>
+"" Resume latest coc list.
+"nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>
+
+" Notify coc.nvim that <enter> has been pressed.
+" Currently used for the formatOnType feature.
+" inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+"       \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+"" Toggle panel with Tree Views
+"nnoremap <silent> <space>t :<C-u>CocCommand metals.tvp<CR>
+"" Toggle Tree View 'metalsPackages'
+"nnoremap <silent> <space>tp :<C-u>CocCommand metals.tvp metalsPackages<CR>
+"" Toggle Tree View 'metalsCompile'
+"nnoremap <silent> <space>tc :<C-u>CocCommand metals.tvp metalsCompile<CR>
+"" Toggle Tree View 'metalsBuild'
+"nnoremap <silent> <space>tb :<C-u>CocCommand metals.tvp metalsBuild<CR>
+"" Reveal current current class (trait or object) in Tree View 'metalsPackages'
+"nnoremap <silent> <space>tf :<C-u>CocCommand metals.revealInTreeView metalsPackages<CR>
+"----"
+" End Scala neo related configuration
+
+" personal wiki configuraiton
+"================================
+let g:wiki_root = '~/my/notebook-office/'
+let g:vimwiki_list = [{'path': '~/my/notebook-office/',
+                      \ 'syntax': 'markdown', 'ext': '.md',
+                      \ 'path_html': '~/Sites/wiki/',
+                      \ 'template_path': '',
+                      \ 'custom_wiki2html': '/Users/sthangavel/my/notebook/bin/vimwiki-customwiki-markdown-converter.sh'}]
+" let g:vimwiki_customwiki2html=$HOME.'/my/notebook/bin/vimwiki-customwiki-markdown-converter.sh'
+"================================
+"
+
+" Advanced tricks
+au InsertEnter * set norelativenumber
+au InsertLeave * set relativenumber
+
+au CmdLineEnter * set norelativenumber | redraw
+au CmdlineLeave * set relativenumber
+
+" Load my work vim files
+" =======================
+try
+    source ~/my/notebook-office/dots/dot-vimrc
+catch
+    " no office specific files
+endtry
+
+"  Sum the numbers under the cursor
+fun! SumVis()
+    try
+        let l:a_save = @a
+        norm! gv"ay
+        let @a = substitute(@a,'[^0-9. ]',' ','g')
+        let c = 0
+        for i in split(@a)
+            let c += i
+        endfor
+        let b = len(split(@a))
+        exec "norm! '>o"
+        exec "norm! iTotal = " . c . " Count = " . b
+     finally
+        let @a = l:a_save
+     endtry
+endfun
+vnoremap <leader>s :<C-u>call SumVis()<cr>
+
+"let g:ale_linters_explicit = 1
+"let g:airline#extensions#ale#enabled = 1
+let g:ale_linters = { 'cpp': ['clang', 'g++'], 'c': ['clang'] }
+
+let g:ale_c_gcc_options     = '-Wall -O2 -Wc++17-extensions -std=c99'
+let g:ale_cpp_gcc_options   = '-Wall -O2 -Wc++17-extensions -std=c++20 '
+let g:ale_c_clang_options   = '-Wall -O2 -Wc++17-extensions -std=c99'
+let g:ale_cpp_clang_options = '-Wall -O2 -Wc++17-extensions -std=c++20'
+
+"let g:ale_c_cppcheck_options = ''
+"let g:ale_cpp_cppcheck_options = ''
+
+" select current selection as single string instead of
+" multiple lines
+function! GetVisualSelection(mode)
+    " call with visualmode() as the argument
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end]     = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if a:mode ==# 'v'
+        " Must trim the end before the start, the beginning will shift left.
+        let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+        let lines[0] = lines[0][column_start - 1:]
+    elseif  a:mode ==# 'V'
+        " Line mode no need to trim start or end
+    elseif  a:mode == "\<c-v>"
+        " Block mode, trim every line
+        let new_lines = []
+        let i = 0
+        for line in lines
+            let lines[i] = line[column_start - 1: column_end - (&selection == 'inclusive' ? 1 : 2)]
+            let i = i + 1
+        endfor
+    else
+        return ''
+    endif
+    for line in lines
+        echom line
+    endfor
+    return join(lines, "\n")
+endfunction
+
+
+"create and open space separated numbers
+"as directed graph using dot command
+"useful for competitive programming
+" such as 1 2 2 3 3 4, each pair in new line
+fun! Digraph(...)
+    try
+        let directed = get(a:, 1, "->")
+        let l:a_save = @a
+        "norm! gv"ay
+        "silent! normal! gv"ay
+        if mode() ==# 'v'
+            let @a = GetVisualSelection(visualmode())
+        else 
+            echom "non visual mode"
+            normal! vip"ay
+            let @a = substitute(@a,'[^0-9. ]',' ','g')
+        endif
+        let c = split(@a)
+        let g = "digraph {\n"
+        if directed != "->"
+            let g = "graph {\n"
+        endif
+        if len(c)%2 == 0
+            let i = 0
+            while i < len(c)
+                let g = g . c[i] . " " . directed . " " . c[i+1] . "\n"
+                let i += 2
+            endwhile
+        endif
+        let g = g . "}"
+        let tmpfile = tempname()
+        echo tmpfile
+        call writefile(split(g, "\n") , tmpfile)
+        echom system("dot -Tpng -o "."/tmp/".expand("%:t").".png ".tmpfile) 
+        echom system("open "."/tmp/".expand("%:t").".png ") 
+        "echom system("dot -Tpng -o /tmp/s.png".tmpfile) 
+        call delete(tmpfile)
+     finally
+        let @a = l:a_save
+     endtry
+endfun
+
+function! OpenInSourceGraph()
+    let prefix = $SOURCEGRAPH_URL . "source/-/blob/"
+    let filename = trim(system('git ls-tree --name-only --full-name -- HEAD ' . expand('%')))
+    let lineNumber = "\\#L" . line(".")
+
+    let url = prefix . filename . lineNumber
+    silent exec "!open '" . url . "'"
+endfunction
+nnoremap <Leader>sg :call OpenInSourceGraph()<CR>
+
+""" replace selected text in visual mode. 
+vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
+
+""" obsidian configs for editing in vim
+abbr dd 📅 2025-08-
+
+function! PrintFriendlyReduced()
+    " 1. Save current syntax state
+    let l:old_syntax = &syntax
+    
+    " 2. Remove all colors but keep bold for keywords
+    syntax off
+    highlight clear
+    highlight Normal ctermfg=black ctermbg=white
+    highlight Bold cterm=bold gui=bold
+    highlight Statement cterm=bold gui=bold ctermfg=black
+    highlight Type cterm=bold gui=bold ctermfg=black
+    highlight Identifier cterm=bold gui=bold ctermfg=black
+
+    " 3. Generate the PostScript file and compress to PDF
+    " Uses -dPDFSETTINGS=/ebook for 150 DPI reduction (good balance of size/quality)
+    let l:ps_file = expand('%:r') . '.ps'
+    let l:pdf_file = expand('%:r') . '.pdf'
+    
+    execute 'hardcopy > ' . l:ps_file
+    
+    " Check if ps2pdf exists and run reduction command
+    if executable('ps2pdf')
+        call system('ps2pdf -dPDFSETTINGS=/ebook ' . l:ps_file . ' ' . l:pdf_file)
+        call system('rm ' . l:ps_file)
+        echo "Printed to reduced PDF: " . l:pdf_file
+    else
+        echo "Error: ps2pdf (Ghostscript) not found. Only PS file generated."
+    endif
+
+    " 4. Restore original syntax
+    if l:old_syntax != ''
+        syntax on
+    endif
+endfunction
+
+" Map to <Leader>p
+nnoremap <Leader>p :call PrintFriendlyReduced()<CR>
+
+function! CleanSyntax()
+    syntax off
+    highlight clear
+    highlight Normal ctermfg=black ctermbg=white
+    highlight Bold cterm=bold gui=bold
+    highlight Statement cterm=bold gui=bold ctermfg=black
+    highlight Type cterm=bold gui=bold ctermfg=black
+    highlight Identifier cterm=bold gui=bold ctermfg=black
+
+    " Set a thicker font family and larger size to emphasize bolding
+    set printfont=Andale_Mono:h12
+
+
+    syntax on
+    highlight clear
+    highlight Normal guifg=#000000 guibg=#ffffff ctermfg=black ctermbg=white
+
+    " 2. Manually force keywords and other groups to BOLD + BLACK
+    " We use 'gui' for high-quality PS output and 'cterm' for terminal consistency
+    let l:bold_groups = ['Statement', 'Type', 'Identifier', 'Keyword', 'PreProc', 'Constant']
+    for group in l:bold_groups
+        execute 'highlight ' . group . ' gui=bold guifg=#000000 cterm=bold ctermfg=black'
+    endfor
+endfunction
