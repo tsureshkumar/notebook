@@ -62,6 +62,7 @@ map("n", "<F7>", ":make!<cr>", { desc = "Run Make" })
 map("n", "<S-F7>", ":make clean all<cr>", { desc = "Make Clean All" })
 map("n", "<F5>", ":!./%<<cr>", { desc = "Run compiled binary" })
 map("n", "<leader>l", ":.lua<CR>", { desc = "Execute current line as Lua" })
+map("n", "<leader>d", ":!d2 --watch %<CR>", { desc = "D2: Live Browser Preview" })
 
 -- Path & Case Utilities
 map("n", "<leader>p", function() vim.fn.setreg("+", vim.fn.expand("%")) end, { desc = "Copy relative path" })
@@ -71,7 +72,8 @@ map("n", "<leader>s", require("utils").switch_case, { desc = "Switch Case" })
 -- 3. Plugin Manager (lazy.nvim)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
-    vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
+    vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable",
+        lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
 
@@ -102,6 +104,32 @@ require("lazy").setup({
 
     -- Core Navigation & UI
     {
+        "folke/snacks.nvim",
+        priority = 1000,
+        lazy = false,
+        ---@type snacks.Config
+        opts = {
+            bigfile = { enabled = true },
+            dashboard = { enabled = true },
+            indent = { enabled = true },
+            input = { enabled = true },
+            notifier = { enabled = true },
+            quickfile = { enabled = true },
+            scroll = { enabled = true },
+            statuscolumn = { enabled = true },
+            words = { enabled = true },
+            scratch = { enabled = true },
+        },
+        keys = {
+            { "<leader>.",  function() Snacks.scratch() end,               desc = "Toggle Scratchpad" },
+            { "<leader>S",  function() Snacks.scratch.select() end,        desc = "Select Scratchpad" },
+            { "<leader>n",  function() Snacks.notifier.show_history() end, desc = "Notification History" },
+            { "<leader>bd", function() Snacks.bufdelete() end,             desc = "Delete Buffer" },
+            { "<leader>cR", function() Snacks.rename.rename_file() end,    desc = "Rename File" },
+            { "<leader>un", function() Snacks.notifier.hide() end,         desc = "Dismiss All Notifications" },
+        },
+    },
+    {
         "nvim-telescope/telescope.nvim",
         dependencies = { "nvim-lua/plenary.nvim" },
         config = true,
@@ -111,12 +139,12 @@ require("lazy").setup({
             { "<leader>b", "<cmd>Telescope buffers<cr>" },
         },
     },
-    { "stevearc/oil.nvim",             opts = {},  keys = { { "-", "<cmd>Oil<cr>" } } },
+    { "stevearc/oil.nvim",             opts = {},                                                    keys = { { "-", "<cmd>Oil<cr>" } } },
     { "mbbill/undotree",               keys = { { "<leader>u", "<cmd>UndotreeToggle<cr>" } } },
     { "christoomey/vim-tmux-navigator" },
     { "junegunn/vim-easy-align",       keys = { { "ga", "<Plug>(EasyAlign)", mode = { "n", "x" } } } },
 
-    -- PRODUCTIVITY: Org Mode Suite
+    -- PRODUCTIVITY: Org & Markdown Suite
     {
         "nvim-orgmode/orgmode",
         event = "VeryLazy",
@@ -136,8 +164,17 @@ require("lazy").setup({
             })
         end,
     },
-    { "akinsho/org-bullets.nvim",     ft = { "org" },             config = function() require("org-bullets").setup() end },
-    { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter", config = true },
+    {
+        "MeanderingProgrammer/render-markdown.nvim",
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+        ft = { "markdown", "org" },
+        opts = {
+            heading = {
+                sign = false,
+                icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
+            },
+        },
+    },
     { "danilshvalov/org-modern.nvim" },
 
     -- Treesitter
@@ -146,7 +183,7 @@ require("lazy").setup({
         build = ":TSUpdate",
         config = function()
             require("nvim-treesitter.config").setup({
-                ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "org", "bash", "rust" },
+                ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "org", "bash", "rust", "d2", "quint" },
                 highlight = { enable = true, additional_vim_regex_highlighting = { "org" } },
             })
         end,
@@ -167,6 +204,25 @@ require("lazy").setup({
                         })
                     end,
                 },
+            })
+
+            -- Custom Quint LSP Setup
+            local lspconfig = require("lspconfig")
+            local configs = require("lspconfig.configs")
+            if not configs.quint then
+                configs.quint = {
+                    default_config = {
+                        cmd = { "quint-language-server", "--stdio" },
+                        filetypes = { "quint" },
+                        root_dir = function(fname)
+                            return lspconfig.util.find_git_ancestor(fname) or vim.loop.os_homedir()
+                        end,
+                        settings = {},
+                    },
+                }
+            end
+            lspconfig.quint.setup({
+                capabilities = require("cmp_nvim_lsp").default_capabilities(),
             })
         end,
     },
@@ -245,17 +301,32 @@ require("lazy").setup({
 
     -- Specialized & External Tools
     { "scalameta/nvim-metals",        dependencies = { "nvim-lua/plenary.nvim" } },
-    { "epwalsh/obsidian.nvim",        ft = "markdown", opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
+    { "epwalsh/obsidian.nvim",        ft = "markdown",                           opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
     { "lervag/vimtex",                ft = "tex" },
-    { "zbirenbaum/copilot.lua",       cmd = "Copilot", opts = { suggestion = { enabled = true } } },
+    { "zbirenbaum/copilot.lua",       cmd = "Copilot",                           opts = { suggestion = { enabled = true } } },
     { "lewis6991/gitsigns.nvim",      opts = {} },
     { "tpope/vim-fugitive" },
-    { "iamcco/markdown-preview.nvim", ft = "markdown", build = "cd app && npm install" },
-    { "rmagatti/auto-session",        lazy = false,    opts = { auto_restore_enabled = true } },
+    { "iamcco/markdown-preview.nvim", ft = "markdown",                           build = "cd app && npm install" },
+    {
+        "terrastruct/d2-vim",
+        ft = { "d2" },
+        config = function()
+            vim.g.d2_ascii_preview = 1
+        end,
+    },
+    { "rmagatti/auto-session", lazy = false, opts = { auto_restore_enabled = true } },
 })
 
 -- GTD Initialization
 pcall(function() require("gtd").init() end)
+
+-- Filetype Detection
+vim.filetype.add({
+    extension = {
+        d2 = "d2",
+        qnt = "quint",
+    },
+})
 
 -- Agent Bridge
 local ok, ab = pcall(require, "agent-bridge")
