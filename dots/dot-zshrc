@@ -215,3 +215,11 @@ function y() {
 	rm -f -- "$tmp"
 }
 eval "$(mise activate zsh)"
+
+# bun completions
+[ -s "/Users/tsureshkumar/.bun/_bun" ] && source "/Users/tsureshkumar/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+. "$HOME/.cargo/env"

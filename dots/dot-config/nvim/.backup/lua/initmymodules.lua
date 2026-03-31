@@ -1,2 +1,0 @@
-require('statusline')
-require('plugins')

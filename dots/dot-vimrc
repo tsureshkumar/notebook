@@ -145,6 +145,7 @@ call plug#begin('~/.vim/plugged')
     Plug 'lervag/wiki.vim'
     Plug 'junegunn/vim-easy-align'
     Plug 'lervag/vimtex'
+    Plug 'jbyuki/instant.nvim'
 call plug#end()
 
 " Appearance

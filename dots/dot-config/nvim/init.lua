@@ -8,9 +8,10 @@ local opt = vim.opt
 opt.hidden = true
 opt.autoread = true
 opt.swapfile = false
-opt.backupcopy = "yes"
 opt.undofile = true
 opt.undodir = vim.fn.stdpath("data") .. "/undo"
+opt.autoindent = true
+opt.smartindent = true
 
 opt.number = true
 opt.relativenumber = true
@@ -62,8 +63,9 @@ map("n", "[q", ":cprev<cr>zz")
 map("n", "<F7>", ":make!<cr>", { desc = "Run Make" })
 map("n", "<S-F7>", ":make clean all<cr>", { desc = "Make Clean All" })
 map("n", "<F5>", ":!./%<<cr>", { desc = "Run compiled binary" })
+map("n", "<leader>l", ":.lua<CR>", { desc = "Execute current line as Lua" })
 
--- Utilities: Path & Case
+-- Path & Case Utilities
 map("n", "<leader>p", function() vim.fn.setreg('+', vim.fn.expand('%')) end, { desc = "Copy relative path" })
 map("n", "<leader>/", function() vim.fn.setreg('+', vim.fn.expand('%:p')) end, { desc = "Copy absolute path" })
 
@@ -86,128 +88,178 @@ map("n", "<leader>s", switch_case, { desc = "Switch Case" })
 -- 3. Plugin Manager (lazy.nvim)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
-    vim.fn.system({"git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath})
+    vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable",
+        lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Theme Configurations. Useful for zenbones
-vim.opt.termguicolors = true
-vim.g.zenbones_italic_comments = true
-vim.g.zenbones_solid_line_nr = true -- Gives the line number column a distinct background
-
 require("lazy").setup({
-    -- Themes
-    { "rebelot/kanagawa.nvim", priority = 1002 },
-    { "ellisonleao/gruvbox.nvim" },
-    { 'sainnhe/everforest' },
-    { 'rose-pine/neovim' },
+    -- Appearance & Themes
     {
-      "zenbones-theme/zenbones.nvim",
-      dependencies = { "rktjmp/lush.nvim" },
-      lazy = false,
-      priority = 1003,
-      config = function()
-        vim.g.zenbones_darken_comments = 45 -- Improves readability on light backgrounds
-        vim.g.zenbones_lightness = "dim" -- Options: 'bright', 'dim'
-
-        -- Pick your flavor:
-        vim.opt.background = "light"
-        --vim.cmd.colorscheme("zenbones") -- Or "zenbones"
-      end
+        "catppuccin/nvim",
+        name = "catppuccin",
+        priority = 1001,
+        config = function()
+            vim.cmd.colorscheme(
+                "catppuccin-mocha")
+        end
     },
-    { "NLKNguyen/papercolor-theme", priority = 1000, config = function() vim.opt.background = "light" vim.cmd("colorscheme PaperColor") end },
-    { "catppuccin/nvim", lazy = false, priority = 1001, name = "catppuccin", config = function() vim.cmd("colorscheme catppuccin-mocha") end },
+    { "rebelot/kanagawa.nvim" },
+    { "ellisonleao/gruvbox.nvim" },
+    { "sainnhe/everforest" },
+    { "rose-pine/neovim" },
+    { "NLKNguyen/papercolor-theme" },
+    {
+        "zenbones-theme/zenbones.nvim",
+        dependencies = { "rktjmp/lush.nvim" },
+        config = function()
+            vim.g.zenbones_italic_comments = true
+            vim.g.zenbones_solid_line_nr = true
+            vim.g.zenbones_darken_comments = 45
+        end
+    },
 
-
-    -- Core Tools
-    { "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" }, config = true,
-      keys = { {"<leader>f", "<cmd>Telescope find_files<cr>"}, {"<leader>g", "<cmd>Telescope live_grep<cr>"}, {"<leader>b", "<cmd>Telescope buffers<cr>"}, {"<leader>h", "<cmd>Telescope help_tags<cr>"} } },
-    { "stevearc/oil.nvim", opts = {}, keys = { {"-", "<cmd>Oil<cr>"} } },
-    { "mbbill/undotree", keys = { {"<leader>u", "<cmd>UndotreeToggle<cr>"} } },
+    -- Core Navigation & UI
+    {
+        "nvim-telescope/telescope.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        config = true,
+        keys = { { "<leader>f", "<cmd>Telescope find_files<cr>" }, { "<leader>g", "<cmd>Telescope live_grep<cr>" }, { "<leader>b", "<cmd>Telescope buffers<cr>" } }
+    },
+    { "stevearc/oil.nvim",             opts = {},                                                    keys = { { "-", "<cmd>Oil<cr>" } } },
+    { "mbbill/undotree",               keys = { { "<leader>u", "<cmd>UndotreeToggle<cr>" } } },
     { "christoomey/vim-tmux-navigator" },
-    { "junegunn/vim-easy-align", keys = { {"ga", "<Plug>(EasyAlign)", mode = {"n", "x"}} } },
+    { "junegunn/vim-easy-align",       keys = { { "ga", "<Plug>(EasyAlign)", mode = { "n", "x" } } } },
+
+    -- PRODUCTIVITY: Org Mode Suite
+    {
+        "nvim-orgmode/orgmode",
+        event = "VeryLazy",
+        ft = { "org" },
+        config = function()
+            require("orgmode").setup({
+                org_agenda_files = { "~/org/**/*" },
+                org_default_notes_file = "~/org/refile.org",
+                org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "|", "DONE(d)", "REJECTED(r)" },
+                org_capture_templates = {
+                    t = { description = "Task", template = "* TODO %?\n  %u" },
+                    p = { description = "Project", template = "* %?\n  %u" },
+                },
+            })
+        end,
+    },
+    { "akinsho/org-bullets.nvim",     ft = { "org" },             config = function() require("org-bullets").setup() end },
+    { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter",      config = true },
 
     -- Treesitter
-    { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate", config = function()
-        require("nvim-treesitter.config").setup({
-            ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "bash", "make", "cmake", "rust" },
-            highlight = { enable = true },
-        })
-    end },
+    {
+        "nvim-treesitter/nvim-treesitter",
+        build = ":TSUpdate",
+        config = function()
+            require("nvim-treesitter.config").setup({ -- This is the correct path
+                ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "org", "bash", "rust" },
+                highlight = { enable = true, additional_vim_regex_highlighting = { "org" } },
+            })
+        end
+    },
 
-    -- LSP, Linting, Formatting
-    { "neovim/nvim-lspconfig", dependencies = { "williamboman/mason.nvim", "williamboman/mason-lspconfig.nvim", "folke/lazydev.nvim", "hrsh7th/cmp-nvim-lsp" },
-      config = function()
-          require("mason").setup()
-          require("mason-lspconfig").setup({
-              ensure_installed = { "clangd", "lua_ls", "pyright", "ts_ls", "gopls" },
-              handlers = {
-                  function(server_name) require("lspconfig")[server_name].setup({ capabilities = require("cmp_nvim_lsp").default_capabilities() }) end,
-                  ["clangd"] = function()
-                      require("lspconfig").clangd.setup({
-                          cmd = { "clangd", "--background-index", "--clang-tidy", "--header-insertion=iwyu", "--completion-style=detailed" },
-                      })
-                  end,
-              },
-          })
-          vim.api.nvim_create_autocmd("LspAttach", {
-              callback = function(ev)
-                  local opts = { buffer = ev.buf }
-                  map("n", "gd", vim.lsp.buf.definition, opts)
-                  map("n", "K", vim.lsp.buf.hover, opts)
-                  map("n", "gi", vim.lsp.buf.implementation, opts)
-                  map("n", "gr", vim.lsp.buf.references, opts)
-                  map("n", "<leader>rn", vim.lsp.buf.rename, opts)
-                  map("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-                  if vim.bo.filetype == "c" or vim.bo.filetype == "cpp" then
-                      map("n", "<A-o>", "<cmd>ClangdSwitchSourceHeader<cr>", opts)
-                  end
-              end,
-          })
-      end },
-
-    -- DAP (Debugger)
-    { "mfussenegger/nvim-dap", dependencies = { "rcarriga/nvim-dap-ui", "nvim-neotest/nvim-nio", "jay-babu/mason-nvim-dap.nvim" },
-      keys = { {"<F9>", function() require('dap').toggle_breakpoint() end}, {"<F4>", function() require('dap').continue() end}, {"<leader>du", function() require('dapui').toggle() end} },
-      config = function()
-          require("mason-nvim-dap").setup({ ensure_installed = { "codelldb" } })
-          local dap, dapui = require("dap"), require("dapui")
-          dapui.setup()
-          dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
-      end },
+    -- LSP, Formatting & Linting
+    {
+        "neovim/nvim-lspconfig",
+        dependencies = { "williamboman/mason.nvim", "williamboman/mason-lspconfig.nvim", "hrsh7th/cmp-nvim-lsp" },
+        config = function()
+            require("mason").setup()
+            require("mason-lspconfig").setup({
+                ensure_installed = { "clangd", "lua_ls", "pyright", "ts_ls", "gopls" },
+                handlers = {
+                    function(server_name)
+                        require("lspconfig")[server_name].setup({
+                            capabilities = require("cmp_nvim_lsp")
+                                .default_capabilities()
+                        })
+                    end,
+                    ["clangd"] = function()
+                        require("lspconfig").clangd.setup({ cmd = { "clangd", "--background-index", "--clang-tidy", "--header-insertion=iwyu" } })
+                    end,
+                },
+            })
+            vim.api.nvim_create_autocmd("LspAttach", {
+                callback = function(ev)
+                    local opts = { buffer = ev.buf }
+                    map("n", "gd", vim.lsp.buf.definition, opts)
+                    map("n", "K", vim.lsp.buf.hover, opts)
+                    map("n", "<leader>rn", vim.lsp.buf.rename, opts)
+                    map("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+                    if vim.bo.filetype == "c" or vim.bo.filetype == "cpp" then
+                        map("n", "<A-o>",
+                            "<cmd>ClangdSwitchSourceHeader<cr>", opts)
+                    end
+                end,
+            })
+        end
+    },
 
     -- Completion
-    { "hrsh7th/nvim-cmp", dependencies = { "hrsh7th/cmp-nvim-lsp", "hrsh7th/cmp-buffer", "hrsh7th/cmp-path", "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip" },
-      config = function()
-          local cmp = require("cmp")
-          cmp.setup({
-              snippet = { expand = function(args) require("luasnip").lsp_expand(args.body) end },
-              mapping = cmp.mapping.preset.insert({ ["<CR>"] = cmp.mapping.confirm({ select = true }), ["<C-Space>"] = cmp.mapping.complete() }),
-              sources = { { name = "nvim_lsp" }, { name = "luasnip" }, { name = "buffer" }, { name = "path" } },
-          })
-      end },
+    {
+        "hrsh7th/nvim-cmp",
+        dependencies = { "hrsh7th/cmp-nvim-lsp", "hrsh7th/cmp-buffer", "hrsh7th/cmp-path", "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip" },
+        config = function()
+            local cmp = require("cmp")
+            cmp.setup({
+                snippet = { expand = function(args) require("luasnip").lsp_expand(args.body) end },
+                mapping = cmp.mapping.preset.insert({
+                    ["<CR>"] = cmp.mapping.confirm({ select = true }),
+                    ["<C-Space>"] =
+                        cmp.mapping.complete()
+                }),
+                sources = { { name = "nvim_lsp" }, { name = "orgmode" }, { name = "luasnip" }, { name = "buffer" }, { name = "path" } },
+            })
+        end
+    },
 
     -- Formatting
-    { "stevearc/conform.nvim", opts = {
-        formatters_by_ft = { lua = {"stylua"}, python = {"isort", "black"}, javascript = {"prettier"}, typescript = {"prettier"}, c = {"clang-format"}, cpp = {"clang-format"} },
-        format_on_save = { timeout_ms = 500, lsp_fallback = true },
-    } },
+    {
+        "stevearc/conform.nvim",
+        opts = {
+            formatters_by_ft = { lua = { "stylua" }, python = { "black" }, javascript = { "prettier" }, c = { "clang-format" } },
+            format_on_save = { timeout_ms = 500, lsp_fallback = true },
+        }
+    },
 
-    -- Specialized
-    { "scalameta/nvim-metals", dependencies = { "nvim-lua/plenary.nvim" }, config = function()
-        local config = require("metals").bare_config()
-        vim.api.nvim_create_autocmd("FileType", { pattern = { "scala", "sbt" }, callback = function() require("metals").initialize_or_attach(config) end })
-    end },
-    { "epwalsh/obsidian.nvim", ft = "markdown", opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
-    { "lervag/vimtex", ft = "tex" },
-    { "zbirenbaum/copilot.lua", cmd = "Copilot", opts = { suggestion = { enabled = true } } },
-    { "lewis6991/gitsigns.nvim", opts = {} },
+    -- Debugging
+    {
+        "mfussenegger/nvim-dap",
+        dependencies = { "rcarriga/nvim-dap-ui", "nvim-neotest/nvim-nio", "jay-babu/mason-nvim-dap.nvim" },
+        keys = { { "<F9>", function() require('dap').toggle_breakpoint() end }, { "<F4>", function()
+            require('dap')
+                .continue()
+        end } },
+        config = function()
+            require("mason-nvim-dap").setup({ ensure_installed = { "codelldb" } })
+            local dap, dapui = require("dap"), require("dapui")
+            dapui.setup()
+            dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
+        end
+    },
+
+    -- Specialized & External Tools
+    { "scalameta/nvim-metals",        dependencies = { "nvim-lua/plenary.nvim" } },
+    { "epwalsh/obsidian.nvim",        ft = "markdown",                           opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
+    { "lervag/vimtex",                ft = "tex" },
+    { "zbirenbaum/copilot.lua",       cmd = "Copilot",                           opts = { suggestion = { enabled = true } } },
+    { "lewis6991/gitsigns.nvim",      opts = {} },
     { "tpope/vim-fugitive" },
+    { "iamcco/markdown-preview.nvim", ft = "markdown",                           build = "cd app && npm install" },
+    { "rmagatti/auto-session",        lazy = false,                              opts = { auto_restore_enabled = true } },
+
 })
 
--- Agent Bridge
+-- gtd
+require('gtd').init()
+
+
+-- 4. Final Integrations
 local ok, ab = pcall(require, "agent-bridge")
 if ok then ab.setup({ host = "127.0.0.1", port = 7777, enable_shell = true }) end
 
--- Global Autocmds
 vim.api.nvim_create_autocmd("TextYankPost", { callback = function() vim.highlight.on_yank() end })
