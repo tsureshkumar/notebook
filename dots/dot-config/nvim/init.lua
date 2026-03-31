@@ -44,7 +44,6 @@ opt.timeoutlen = 300
 -- 2. Keymaps
 local map = vim.keymap.set
 
-
 -- Navigation & UI
 map("n", "<leader><space>", ":noh<cr>")
 map("n", "<leader>w", ":bdelete<cr>")
@@ -65,30 +64,14 @@ map("n", "<F5>", ":!./%<<cr>", { desc = "Run compiled binary" })
 map("n", "<leader>l", ":.lua<CR>", { desc = "Execute current line as Lua" })
 
 -- Path & Case Utilities
-map("n", "<leader>p", function() vim.fn.setreg('+', vim.fn.expand('%')) end, { desc = "Copy relative path" })
-map("n", "<leader>/", function() vim.fn.setreg('+', vim.fn.expand('%:p')) end, { desc = "Copy absolute path" })
-
-local function switch_case()
-    local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-    local word = vim.fn.expand("<cword>")
-    local line_str = vim.api.nvim_get_current_line()
-    local start_col = vim.fn.matchstrpos(line_str, "\\k*\\%" .. (col + 1) .. "c\\k*")[2]
-
-    if word:find("[a-z][A-Z]") then
-        local snake = word:gsub("([a-z])([A-Z])", "%1_%2"):lower()
-        vim.api.nvim_buf_set_text(0, line - 1, start_col, line - 1, start_col + #word, { snake })
-    elseif word:find("_[a-z]") then
-        local camel = word:gsub("(_)([a-z])", function(_, l) return l:upper() end)
-        vim.api.nvim_buf_set_text(0, line - 1, start_col, line - 1, start_col + #word, { camel })
-    end
-end
-map("n", "<leader>s", switch_case, { desc = "Switch Case" })
+map("n", "<leader>p", function() vim.fn.setreg("+", vim.fn.expand("%")) end, { desc = "Copy relative path" })
+map("n", "<leader>/", function() vim.fn.setreg("+", vim.fn.expand("%:p")) end, { desc = "Copy absolute path" })
+map("n", "<leader>s", require("utils").switch_case, { desc = "Switch Case" })
 
 -- 3. Plugin Manager (lazy.nvim)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
-    vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable",
-        lazypath })
+    vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
 
@@ -100,7 +83,7 @@ require("lazy").setup({
         priority = 1001,
         config = function()
             vim.cmd.colorscheme("catppuccin-mocha")
-        end
+        end,
     },
     { "rebelot/kanagawa.nvim" },
     { "ellisonleao/gruvbox.nvim" },
@@ -114,7 +97,7 @@ require("lazy").setup({
             vim.g.zenbones_italic_comments = true
             vim.g.zenbones_solid_line_nr = true
             vim.g.zenbones_darken_comments = 45
-        end
+        end,
     },
 
     -- Core Navigation & UI
@@ -122,9 +105,13 @@ require("lazy").setup({
         "nvim-telescope/telescope.nvim",
         dependencies = { "nvim-lua/plenary.nvim" },
         config = true,
-        keys = { { "<leader>f", "<cmd>Telescope find_files<cr>" }, { "<leader>g", "<cmd>Telescope live_grep<cr>" }, { "<leader>b", "<cmd>Telescope buffers<cr>" } }
+        keys = {
+            { "<leader>f", "<cmd>Telescope find_files<cr>" },
+            { "<leader>g", "<cmd>Telescope live_grep<cr>" },
+            { "<leader>b", "<cmd>Telescope buffers<cr>" },
+        },
     },
-    { "stevearc/oil.nvim",             opts = {},                                                    keys = { { "-", "<cmd>Oil<cr>" } } },
+    { "stevearc/oil.nvim",             opts = {},  keys = { { "-", "<cmd>Oil<cr>" } } },
     { "mbbill/undotree",               keys = { { "<leader>u", "<cmd>UndotreeToggle<cr>" } } },
     { "christoomey/vim-tmux-navigator" },
     { "junegunn/vim-easy-align",       keys = { { "ga", "<Plug>(EasyAlign)", mode = { "n", "x" } } } },
@@ -142,7 +129,7 @@ require("lazy").setup({
                 ui = {
                     menu = {
                         handler = function(data)
-                            require('org-modern.menu'):new():open(data)
+                            require("org-modern.menu"):new():open(data)
                         end,
                     },
                 },
@@ -150,7 +137,7 @@ require("lazy").setup({
         end,
     },
     { "akinsho/org-bullets.nvim",     ft = { "org" },             config = function() require("org-bullets").setup() end },
-    { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter",      config = true },
+    { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter", config = true },
     { "danilshvalov/org-modern.nvim" },
 
     -- Treesitter
@@ -162,7 +149,7 @@ require("lazy").setup({
                 ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "org", "bash", "rust" },
                 highlight = { enable = true, additional_vim_regex_highlighting = { "org" } },
             })
-        end
+        end,
     },
 
     -- LSP, Formatting & Linting
@@ -176,26 +163,24 @@ require("lazy").setup({
                 handlers = {
                     function(server_name)
                         require("lspconfig")[server_name].setup({
-                            capabilities = require("cmp_nvim_lsp").default_capabilities()
+                            capabilities = require("cmp_nvim_lsp").default_capabilities(),
                         })
                     end,
                 },
             })
-        end
+        end,
     },
 
-    -- PROSE LINTING & GRAMMAR
+    -- Prose Linting
     {
         "mfussenegger/nvim-lint",
         config = function()
-            require('lint').linters_by_ft = {
-                markdown = { 'vale' },
-                org = { 'vale' },
+            require("lint").linters_by_ft = {
+                markdown = { "vale" },
+                org = { "vale" },
             }
             vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter" }, {
-                callback = function()
-                    require("lint").try_lint()
-                end,
+                callback = function() require("lint").try_lint() end,
             })
         end,
     },
@@ -210,11 +195,11 @@ require("lazy").setup({
                 snippet = { expand = function(args) require("luasnip").lsp_expand(args.body) end },
                 mapping = cmp.mapping.preset.insert({
                     ["<CR>"] = cmp.mapping.confirm({ select = true }),
-                    ["<C-Space>"] = cmp.mapping.complete()
+                    ["<C-Space>"] = cmp.mapping.complete(),
                 }),
                 sources = { { name = "nvim_lsp" }, { name = "orgmode" }, { name = "luasnip" }, { name = "buffer" }, { name = "path" } },
             })
-        end
+        end,
     },
 
     -- Formatting
@@ -223,7 +208,7 @@ require("lazy").setup({
         opts = {
             formatters_by_ft = { lua = { "stylua" }, python = { "black" }, javascript = { "prettier" }, c = { "clang-format" } },
             format_on_save = { timeout_ms = 500, lsp_fallback = true },
-        }
+        },
     },
 
     -- Debugging
@@ -235,17 +220,16 @@ require("lazy").setup({
             local dap, dapui = require("dap"), require("dapui")
             dapui.setup()
             dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
-        end
+        end,
     },
 
-    -- search
+    -- Search
     {
         "ibhagwan/fzf-lua",
         dependencies = { "nvim-tree/nvim-web-devicons" },
         config = function()
             local fzf = require("fzf-lua")
             fzf.setup({
-                -- Use 'fzf-native' for better performance if installed
                 fzf_opts = { ["--layout"] = "reverse" },
                 winopts = {
                     height = 0.85,
@@ -253,34 +237,39 @@ require("lazy").setup({
                     preview = { layout = "vertical" },
                 },
             })
+            vim.keymap.set("n", "<leader>sf", fzf.files, { desc = "FZF: Find Files" })
+            vim.keymap.set("n", "<leader>sg", fzf.live_grep, { desc = "FZF: Live Grep" })
+            vim.keymap.set("n", "<leader>sw", fzf.grep_cword, { desc = "FZF: Search Word Under Cursor" })
         end,
     },
 
     -- Specialized & External Tools
     { "scalameta/nvim-metals",        dependencies = { "nvim-lua/plenary.nvim" } },
-    { "epwalsh/obsidian.nvim",        ft = "markdown",                           opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
+    { "epwalsh/obsidian.nvim",        ft = "markdown", opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
     { "lervag/vimtex",                ft = "tex" },
-    { "zbirenbaum/copilot.lua",       cmd = "Copilot",                           opts = { suggestion = { enabled = true } } },
+    { "zbirenbaum/copilot.lua",       cmd = "Copilot", opts = { suggestion = { enabled = true } } },
     { "lewis6991/gitsigns.nvim",      opts = {} },
     { "tpope/vim-fugitive" },
-    { "iamcco/markdown-preview.nvim", ft = "markdown",                           build = "cd app && npm install" },
-    { "rmagatti/auto-session",        lazy = false,                              opts = { auto_restore_enabled = true } },
-
+    { "iamcco/markdown-preview.nvim", ft = "markdown", build = "cd app && npm install" },
+    { "rmagatti/auto-session",        lazy = false,    opts = { auto_restore_enabled = true } },
 })
 
 -- GTD Initialization
-pcall(function() require('gtd').init() end)
+pcall(function() require("gtd").init() end)
 
--- Final Integrations
+-- Agent Bridge
 local ok, ab = pcall(require, "agent-bridge")
 if ok then ab.setup({ host = "127.0.0.1", port = 7777, enable_shell = true }) end
 
-vim.api.nvim_create_autocmd("TextYankPost", { callback = function() vim.highlight.on_yank() end })
+-- Highlight on yank
+vim.api.nvim_create_autocmd("TextYankPost", {
+    callback = function() vim.highlight.on_yank() end,
+})
 
--- faster searching
-local fzf = require("fzf-lua")
-
--- General Search
-vim.keymap.set("n", "<leader>sf", fzf.files, { desc = "FZF: Find Files" })
-vim.keymap.set("n", "<leader>sg", fzf.live_grep, { desc = "FZF: Live Grep" })
-vim.keymap.set("n", "<leader>sw", fzf.grep_cword, { desc = "FZF: Search Word Under Cursor" })
+-- Autocommands
+vim.api.nvim_create_autocmd("InsertEnter", { callback = function() opt.relativenumber = false end })
+vim.api.nvim_create_autocmd("InsertLeave", { callback = function() opt.relativenumber = true end })
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+    pattern = { "*.h", "*.c" },
+    callback = function() vim.bo.filetype = "c.doxygen" end,
+})

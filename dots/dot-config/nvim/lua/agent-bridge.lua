@@ -2,7 +2,7 @@
 
 local M = {}
 
-local uv = vim.loop
+local uv = vim.uv or vim.loop
 
 M.config = {
   host = "127.0.0.1",
@@ -403,53 +403,3 @@ function M.setup(opts)
 end
 
 return M
-
---- Examples
--- ---
--- # 3) Test from your terminal (client side)
--- 
--- ### Ping
--- 
--- ```bash
--- printf '{"id":1,"op":"ping"}\n' | nc 127.0.0.1 7777
--- ```
--- 
--- ### Read buffer state (include text)
--- 
--- ```bash
--- printf '{"id":2,"op":"get_state","include_text":true}\n' | nc 127.0.0.1 7777
--- ```
--- 
--- ### Apply edits (replace chars in a range)
--- 
--- This replaces row 0 col 0..5 with “HELLO”:
--- 
--- ```bash
--- printf '{"id":3,"op":"apply_edits","bufnr":0,"edits":[{"start":[0,0],"end":[0,5],"lines":["HELLO"]}]}\n' | nc 127.0.0.1 7777
--- ```
--- 
--- ### Run a safe ex command (allowlisted)
--- 
--- ```bash
--- printf '{"id":4,"op":"exec_ex","cmd":":set number"}\n' | nc 127.0.0.1 7777
--- ```
--- 
--- ### Request a shell command (will prompt you in Neovim)
--- 
--- ```bash
--- printf '{"id":5,"op":"run_shell","argv":["git","status"],"cwd":"'"$(pwd)"'"}\n' | nc 127.0.0.1 7777
--- ```
--- 
--- ---
--- 
--- ## Important security note (the one that matters)
--- 
--- If your agent can still do arbitrary `nvim --remote-send ':...<CR>'`, it can bypass this bridge. The safe pattern is:
--- 
--- * **Agent only talks to this TCP server**
--- * You remove/disable the “send arbitrary ex-command” path from the agent skill
--- 
--- ---
--- 
--- If you tell me your Neovim version (`nvim --version`), I can adjust `run_shell` to be compatible (Neovim <0.10 doesn’t have `vim.system()`), and I can also add a “diff preview” op (send edits → show them in a preview split → approve apply).
--- 

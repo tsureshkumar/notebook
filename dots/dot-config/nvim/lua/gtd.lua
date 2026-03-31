@@ -136,60 +136,54 @@ function gtd.engage()
     end
 end
 
--- 7. Setup Commands & Mappings
+-- 7. Second Brain Search (Requires fzf-lua)
+function gtd.search_notes()
+    require("fzf-lua").live_grep({ cwd = gtd.base_path .. "/notes", prompt_title = "Search Notes" })
+end
+
+function gtd.search_tasks()
+    require("fzf-lua").live_grep({
+        cwd = gtd.gtd_dir,
+        search = "^\\* (TODO|NEXT|WAITING)",
+        no_esc = true,
+        prompt_title = "Active Tasks Search",
+    })
+end
+
+function gtd.search_all()
+    require("fzf-lua").live_grep({ cwd = gtd.base_path, prompt_title = "Search Second Brain" })
+end
+
+-- 8. Setup Commands & Mappings
 function gtd.setup_commands()
-    vim.api.nvim_create_user_command('GTDCapture', function(opts) gtd.capture(opts.args) end, { nargs = '?' })
-    vim.api.nvim_create_user_command('GTDClarify', gtd.clarify, {})
-    vim.api.nvim_create_user_command('GTDReflect', gtd.reflect, {})
-    vim.api.nvim_create_user_command('GTDEngage', gtd.engage, {})
+    vim.api.nvim_create_user_command("GTDCapture", function(opts) gtd.capture(opts.args) end, { nargs = "?" })
+    vim.api.nvim_create_user_command("GTDClarify", gtd.clarify, {})
+    vim.api.nvim_create_user_command("GTDReflect", gtd.reflect, {})
+    vim.api.nvim_create_user_command("GTDEngage", gtd.engage, {})
 end
 
 function gtd.setup_mappings()
     local opts = { silent = true }
-    vim.keymap.set('n', '<leader>gc', ':GTDCapture<CR>', opts)
-    vim.keymap.set('n', '<leader>gp', ':GTDClarify<CR>', opts) -- P for Process/Clarify
-    vim.keymap.set('n', '<leader>gr', ':GTDReflect<CR>', opts)
-    vim.keymap.set('n', '<leader>ge', ':GTDEngage<CR>', opts)
-
-    -- Quick Openers
-    vim.keymap.set('n', '<leader>gi', function() open_file(files.inbox) end, opts)
-    vim.keymap.set('n', '<leader>gn', function() open_file(files.next) end, opts)
-
-    -- Search Mappings
-    vim.keymap.set('n', '<leader>sn', gtd.search_notes, { desc = "GTD: Search Notes" })
-    vim.keymap.set('n', '<leader>st', gtd.search_tasks, { desc = "GTD: Search Active Tasks" })
+    vim.keymap.set("n", "<leader>gc", ":GTDCapture<CR>", opts)
+    vim.keymap.set("n", "<leader>gp", ":GTDClarify<CR>", opts)
+    vim.keymap.set("n", "<leader>gr", ":GTDReflect<CR>", opts)
+    vim.keymap.set("n", "<leader>ge", ":GTDEngage<CR>", opts)
+    vim.keymap.set("n", "<leader>gi", function() open_file(files.inbox) end, opts)
+    vim.keymap.set("n", "<leader>gn", function() open_file(files.next) end, opts)
+    vim.keymap.set("n", "<leader>sn", gtd.search_notes, { desc = "GTD: Search Notes" })
+    vim.keymap.set("n", "<leader>st", gtd.search_tasks, { desc = "GTD: Search Active Tasks" })
 end
 
 function gtd.init()
     gtd.setup_commands()
     gtd.setup_mappings()
-    -- Orgmode setup remains same
-    local ok, org = pcall(require, 'orgmode')
+    local ok, org = pcall(require, "orgmode")
     if ok then
         org.setup({
-            org_agenda_files = { gtd.gtd_dir .. '/**/*' },
+            org_agenda_files = { gtd.gtd_dir .. "/**/*" },
             org_default_notes_file = files.inbox,
         })
     end
-end
-
--- Add this to the bottom of nvim-gtd-migration/lua/gtd.lua
--- 8. Second Brain Search (Requires fzf-lua)
-function gtd.search_notes()
-    require('fzf-lua').live_grep({ cwd = gtd.base_path .. "/notes", prompt_title = "Search Notes" })
-end
-
-function gtd.search_tasks()
-    require('fzf-lua').live_grep({
-        cwd = gtd.gtd_dir,
-        search = "^\\* (TODO|NEXT|WAITING)",
-        no_esc = true,
-        prompt_title = "Active Tasks Search"
-    })
-end
-
-function gtd.search_all()
-    require('fzf-lua').live_grep({ cwd = gtd.base_path, prompt_title = "Search Second Brain" })
 end
 
 return gtd

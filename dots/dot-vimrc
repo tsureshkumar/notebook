@@ -156,6 +156,9 @@ colorscheme PaperColor
 nnoremap <leader>f :Files<cr>
 nnoremap <leader>g :Rg<cr>
 nnoremap <leader>b :Buffers<cr>
+nnoremap <leader>sf :Files<cr>
+nnoremap <leader>sg :Rg<cr>
+nnoremap <leader>sw :Rg <C-r><C-w><cr>
 
 " ALE Config (Systems + Web)
 let g:ale_linters = {
