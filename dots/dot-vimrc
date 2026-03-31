@@ -28,13 +28,13 @@ set nowrap
 set splitbelow
 set splitright
 
+set autoindent
+set smartindent
 set expandtab
 set shiftwidth=4
 set tabstop=4
 set textwidth=80
-set list
-set listchars=tab:»\ ,trail:·,nbsp:␣
-set mouse=a
+set mouse=r
 
 set ignorecase
 set smartcase

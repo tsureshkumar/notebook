@@ -28,9 +28,7 @@ opt.expandtab = true
 opt.shiftwidth = 4
 opt.tabstop = 4
 opt.textwidth = 80
-opt.list = true
-opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
-opt.mouse = "a"
+opt.mouse = "r"
 
 opt.ignorecase = true
 opt.smartcase = true
