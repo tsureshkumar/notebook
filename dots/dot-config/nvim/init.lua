@@ -46,6 +46,7 @@ opt.timeoutlen = 300
 -- 2. Keymaps
 local map = vim.keymap.set
 
+
 -- Navigation & UI
 map("n", "<leader><space>", ":noh<cr>")
 map("n", "<leader>w", ":bdelete<cr>")
@@ -100,8 +101,7 @@ require("lazy").setup({
         name = "catppuccin",
         priority = 1001,
         config = function()
-            vim.cmd.colorscheme(
-                "catppuccin-mocha")
+            vim.cmd.colorscheme("catppuccin-mocha")
         end
     },
     { "rebelot/kanagawa.nvim" },
@@ -138,25 +138,29 @@ require("lazy").setup({
         ft = { "org" },
         config = function()
             require("orgmode").setup({
-                org_agenda_files = { "~/org/**/*" },
+                org_agenda_files = { "~/org/**/*", "~/my/notebook-private/SecondBrain/my/notebook/gtd/**/*" },
                 org_default_notes_file = "~/org/refile.org",
-                org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "|", "DONE(d)", "REJECTED(r)" },
-                org_capture_templates = {
-                    t = { description = "Task", template = "* TODO %?\n  %u" },
-                    p = { description = "Project", template = "* %?\n  %u" },
+                org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)" },
+                ui = {
+                    menu = {
+                        handler = function(data)
+                            require('org-modern.menu'):new():open(data)
+                        end,
+                    },
                 },
             })
         end,
     },
     { "akinsho/org-bullets.nvim",     ft = { "org" },             config = function() require("org-bullets").setup() end },
     { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter",      config = true },
+    { "danilshvalov/org-modern.nvim" },
 
     -- Treesitter
     {
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
         config = function()
-            require("nvim-treesitter.config").setup({ -- This is the correct path
+            require("nvim-treesitter.config").setup({
                 ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "org", "bash", "rust" },
                 highlight = { enable = true, additional_vim_regex_highlighting = { "org" } },
             })
@@ -174,29 +178,28 @@ require("lazy").setup({
                 handlers = {
                     function(server_name)
                         require("lspconfig")[server_name].setup({
-                            capabilities = require("cmp_nvim_lsp")
-                                .default_capabilities()
+                            capabilities = require("cmp_nvim_lsp").default_capabilities()
                         })
-                    end,
-                    ["clangd"] = function()
-                        require("lspconfig").clangd.setup({ cmd = { "clangd", "--background-index", "--clang-tidy", "--header-insertion=iwyu" } })
                     end,
                 },
             })
-            vim.api.nvim_create_autocmd("LspAttach", {
-                callback = function(ev)
-                    local opts = { buffer = ev.buf }
-                    map("n", "gd", vim.lsp.buf.definition, opts)
-                    map("n", "K", vim.lsp.buf.hover, opts)
-                    map("n", "<leader>rn", vim.lsp.buf.rename, opts)
-                    map("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-                    if vim.bo.filetype == "c" or vim.bo.filetype == "cpp" then
-                        map("n", "<A-o>",
-                            "<cmd>ClangdSwitchSourceHeader<cr>", opts)
-                    end
+        end
+    },
+
+    -- PROSE LINTING & GRAMMAR
+    {
+        "mfussenegger/nvim-lint",
+        config = function()
+            require('lint').linters_by_ft = {
+                markdown = { 'vale' },
+                org = { 'vale' },
+            }
+            vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter" }, {
+                callback = function()
+                    require("lint").try_lint()
                 end,
             })
-        end
+        end,
     },
 
     -- Completion
@@ -209,8 +212,7 @@ require("lazy").setup({
                 snippet = { expand = function(args) require("luasnip").lsp_expand(args.body) end },
                 mapping = cmp.mapping.preset.insert({
                     ["<CR>"] = cmp.mapping.confirm({ select = true }),
-                    ["<C-Space>"] =
-                        cmp.mapping.complete()
+                    ["<C-Space>"] = cmp.mapping.complete()
                 }),
                 sources = { { name = "nvim_lsp" }, { name = "orgmode" }, { name = "luasnip" }, { name = "buffer" }, { name = "path" } },
             })
@@ -230,16 +232,30 @@ require("lazy").setup({
     {
         "mfussenegger/nvim-dap",
         dependencies = { "rcarriga/nvim-dap-ui", "nvim-neotest/nvim-nio", "jay-babu/mason-nvim-dap.nvim" },
-        keys = { { "<F9>", function() require('dap').toggle_breakpoint() end }, { "<F4>", function()
-            require('dap')
-                .continue()
-        end } },
         config = function()
             require("mason-nvim-dap").setup({ ensure_installed = { "codelldb" } })
             local dap, dapui = require("dap"), require("dapui")
             dapui.setup()
             dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
         end
+    },
+
+    -- search
+    {
+        "ibhagwan/fzf-lua",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+        config = function()
+            local fzf = require("fzf-lua")
+            fzf.setup({
+                -- Use 'fzf-native' for better performance if installed
+                fzf_opts = { ["--layout"] = "reverse" },
+                winopts = {
+                    height = 0.85,
+                    width = 0.80,
+                    preview = { layout = "vertical" },
+                },
+            })
+        end,
     },
 
     -- Specialized & External Tools
@@ -254,12 +270,19 @@ require("lazy").setup({
 
 })
 
--- gtd
-require('gtd').init()
+-- GTD Initialization
+pcall(function() require('gtd').init() end)
 
-
--- 4. Final Integrations
+-- Final Integrations
 local ok, ab = pcall(require, "agent-bridge")
 if ok then ab.setup({ host = "127.0.0.1", port = 7777, enable_shell = true }) end
 
 vim.api.nvim_create_autocmd("TextYankPost", { callback = function() vim.highlight.on_yank() end })
+
+-- faster searching
+local fzf = require("fzf-lua")
+
+-- General Search
+vim.keymap.set("n", "<leader>sf", fzf.files, { desc = "FZF: Find Files" })
+vim.keymap.set("n", "<leader>sg", fzf.live_grep, { desc = "FZF: Live Grep" })
+vim.keymap.set("n", "<leader>sw", fzf.grep_cword, { desc = "FZF: Search Word Under Cursor" })
