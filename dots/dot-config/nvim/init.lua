@@ -164,17 +164,8 @@ require("lazy").setup({
             })
         end,
     },
-    {
-        "MeanderingProgrammer/render-markdown.nvim",
-        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
-        ft = { "markdown", "org" },
-        opts = {
-            heading = {
-                sign = false,
-                icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
-            },
-        },
-    },
+    { "akinsho/org-bullets.nvim",     ft = { "org" },             config = function() require("org-bullets").setup() end },
+    { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter", config = true },
     { "danilshvalov/org-modern.nvim" },
 
     -- Treesitter
