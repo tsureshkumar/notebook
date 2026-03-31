@@ -121,13 +121,29 @@ require("lazy").setup({
             scratch = { enabled = true },
         },
         keys = {
-            { "<leader>.",  function() Snacks.scratch() end,               desc = "Toggle Scratchpad" },
+            { "<leader>,",  function() Snacks.scratch() end,               desc = "Toggle Scratchpad" },
             { "<leader>S",  function() Snacks.scratch.select() end,        desc = "Select Scratchpad" },
             { "<leader>n",  function() Snacks.notifier.show_history() end, desc = "Notification History" },
             { "<leader>bd", function() Snacks.bufdelete() end,             desc = "Delete Buffer" },
             { "<leader>cR", function() Snacks.rename.rename_file() end,    desc = "Rename File" },
             { "<leader>un", function() Snacks.notifier.hide() end,         desc = "Dismiss All Notifications" },
         },
+    },
+    {
+        "nvim-lualine/lualine.nvim",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+        config = function()
+            require("lualine").setup({
+                options = {
+                    theme = "catppuccin",
+                    component_separators = "|",
+                    section_separators = "",
+                },
+                sections = {
+                    lualine_c = { { "filename", path = 1 } }, -- Shows relative path to avoid truncation
+                },
+            })
+        end,
     },
     {
         "nvim-telescope/telescope.nvim",
@@ -165,7 +181,7 @@ require("lazy").setup({
         end,
     },
     { "akinsho/org-bullets.nvim",     ft = { "org" },             config = function() require("org-bullets").setup() end },
-    { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter", config = true },
+    { "lukas-reineke/headlines.nvim", ft = { "org", "markdown" }, dependencies = "nvim-treesitter/nvim-treesitter",      config = true },
     { "danilshvalov/org-modern.nvim" },
 
     -- Treesitter
