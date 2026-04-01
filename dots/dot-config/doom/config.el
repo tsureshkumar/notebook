@@ -30,7 +30,10 @@
 
 ;; ORG MODE
 (setq org-directory "~/org/")
-(setq org-agenda-files (list org-directory (concat my-vault-root "gtd/")))
+(setq org-agenda-files
+      (append (directory-files-recursively org-directory "\\.org$")
+              (directory-files-recursively (concat my-vault-root "gtd/") "\\.org$")))
+
 
 (after! org
   (setq org-todo-keywords
@@ -70,3 +73,6 @@
   "Insert date at point."
   (interactive)
   (insert (format-time-string "%A, %B %e, %Y %k:%M:%S %z")))
+
+
+(setq evil-esc-delay 0)
