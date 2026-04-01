@@ -4,6 +4,8 @@
 vim.g.mapleader = "\\"
 vim.g.maplocalleader = ","
 
+local vault_root = vim.fn.expand("~/vault/my/notebook/")
+
 local opt = vim.opt
 opt.hidden = true
 opt.autoread = true
@@ -199,8 +201,9 @@ require("lazy").setup({
         event = "VeryLazy",
         ft = { "org" },
         config = function()
+            local vault_root = vim.fn.expand("~/vault/my/notebook/")
             require("orgmode").setup({
-                org_agenda_files = { "~/org/**/*", "~/my/notebook-private/SecondBrain/my/notebook/gtd/**/*" },
+                org_agenda_files = { "~/org/**/*", vault_root .. "gtd/**/*" },
                 org_default_notes_file = "~/org/refile.org",
                 org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)" },
                 ui = { menu = { handler = function(data) require("org-modern.menu"):new():open(data) end } },
