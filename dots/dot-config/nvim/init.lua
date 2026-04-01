@@ -314,6 +314,24 @@ require("lazy").setup({
             dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
         end
     },
+    {
+        "chipsenkbeil/org-roam.nvim",
+        tag = "0.2.0",
+        dependencies = {
+            {
+                "nvim-orgmode/orgmode",
+                tag = "0.7.0",
+            },
+        },
+        config = function()
+            require("org-roam").setup({
+                directory = vim.fn.expand("~/vault/my/notebook"),
+                database = {
+                    path = vim.fn.expand("~/.local/share/nvim/org-roam.db"),
+                },
+            })
+        end
+    },
     { "scalameta/nvim-metals",        dependencies = { "nvim-lua/plenary.nvim" } },
     { "epwalsh/obsidian.nvim",        ft = "markdown",                                                                                                                                                                            opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
     { "lervag/vimtex",                ft = "tex" },
