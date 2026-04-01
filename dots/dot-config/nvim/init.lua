@@ -79,7 +79,9 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-require("lazy").setup({
+-- Check if dev.lua exists and safely load its content
+local has_dev, dev_specs = pcall(require, "dev")
+local plugins = {
     -- Appearance & Themes
     {
         "catppuccin/nvim",
@@ -341,6 +343,20 @@ require("lazy").setup({
     { "iamcco/markdown-preview.nvim", ft = "markdown",                                                                                                                                                                            build = "cd app && npm install" },
     { "terrastruct/d2-vim",           ft = { "d2" },                                                                                                                                                                              config = function() vim.g.d2_ascii_preview = 1 end },
     { "rmagatti/auto-session",        lazy = false,                                                                                                                                                                               opts = { auto_restore_enabled = true } },
+}
+
+-- If dev.lua exists and returned a table, merge it into the plugins list
+if has_dev and type(dev_specs) == "table" then
+    for _, spec in ipairs(dev_specs) do
+        table.insert(plugins, spec)
+    end
+end
+
+require("lazy").setup(plugins, {
+    dev = {
+        path = "~/vault/projects/",
+        fallback = true,
+    }
 })
 
 -- Final setup
