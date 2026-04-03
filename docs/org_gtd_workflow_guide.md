@@ -6,6 +6,32 @@ This guide details a unified, high-performance system for managing life and tech
 
 ## Part 1: General Productive Workflow (The 5 Pillars)
 
+### The GTD Process Flow
+```text
+                                 [ INPUT: STUFF ]
+                                        |
+                                 Is it Actionable?
+                                 /              \
+                         [ NO ]                  [ YES ]
+                           |                        |
+             +-------------+------------+    What is the Next Action?
+             |             |            |           |
+         [ TRASH ]    [ INCUBATE ]  [ REFERENCE ]   |
+                       (Someday)                    |
+                                        +-----------+-----------+
+                                        |           |           |
+                                  [ DO IT ]    [ DELEGATE ] [ DEFER ]
+                                  (< 2 min)    (Waiting For)    |
+                                                                |
+                                                 +--------------+--------------+
+                                                 |                             |
+                                           [ NEXT ACTIONS ]              [ PROJECTS ]
+                                           (Context Lists)             (Multi-step Plans)
+                                                 |
+                                           [ TICKLER ]
+                                        (Future Reminders)
+```
+
 For anyone looking to clear their mind and stay organized, the workflow follows David Allen's five stages of GTD, mapped directly to Org Mode features.
 
 ### 1. Capture (Clear Your Head)
@@ -28,6 +54,12 @@ For anyone looking to clear their mind and stay organized, the workflow follows 
 - **Waiting For:** Move to `GTD-System/waiting-for.org`. Tasks you've delegated.
 - **Tickler:** Move to `GTD-System/tickler.org`. Future reminders (e.g., "Renew passport in 6 months").
 - **Projects:** Mark the top-level heading with a `:PROJECT:` tag.
+
+#### Deep Dive: What is a Tickler?
+A **Tickler** file (traditionally "43 folders") is a system to "tickle" your memory at a future date. It is the bridge between "Someday/Maybe" and "Next Actions."
+- **Definition:** Items that you don't want to see, think about, or be distracted by until a specific day in the future.
+- **Examples:** Follow up on an invoice next Tuesday; check for a package delivery on Friday; remind yourself of a concert ticket pre-sale in 3 months.
+- **Org Mode Implementation:** Use the `T` capture template (`SPC X T` or `<leader>gt`). Always add a `SCHEDULED` timestamp. The item will "disappear" and only resurface in your **Agenda** on the day you need to see it.
 
 ### 4. Reflect (The Weekly, Monthly, and Quarterly Review)
 **Goal:** Keep the system "clean, clear, and current" across all horizons.
@@ -65,7 +97,7 @@ Org Mode allows you to mix executable code blocks with rich text.
 - **Benefit:** You can "tangle" (export) these blocks into source files or execute them directly to test assumptions.
 
 ### 3. Technical Research & Second Brain (Org-Roam)
-As an architect, you deal with complex decisions (ADRs). Use a Zettelkasten method via `org-roam`.
+As an architect, you deal with complex decisions (ADRs). Use a [Zettelkasten method](#appendix-the-zettelkasten-method) via `org-roam`.
 - **Action:** Use `SPC n s` to search or create permanent notes for architectural patterns, obscure bugs, or library research.
 - **Linking:** Link your GTD tasks to your technical notes. "TODO Fix Bug X" should link to the note where you've analyzed the root cause.
 
@@ -87,3 +119,19 @@ When a critical bug or a "quick question" interrupts your flow:
 **If it's not in your Org files, it doesn't exist.** 
 
 Trusting your system allows you to achieve "Mind Like Water," where your brain is used for *creating* and *architecting*, not for *remembering* TODOs.
+
+---
+
+## Appendix: The Zettelkasten Method
+
+The **Zettelkasten** (slip-box) method is a system for knowledge management and creative thinking. It focuses on making connections between individual "atoms" of information.
+
+### Core Principles:
+1. **Atomicity:** Each note should contain one idea only.
+2. **Connectivity:** Notes are useless in isolation; they must link to other notes.
+3. **No Hierarchy:** Let the structure emerge organically through links rather than predefined folders.
+
+### Org Mode Implementation (Org-Roam):
+- Use **Backlinks** to see what other notes refer to your current idea.
+- Use **Daily Notes** for fleeting thoughts that later get processed into permanent Zettels.
+- **Goal:** Move from "collecting information" to "connecting information."

@@ -147,7 +147,7 @@ end
 function gtd.search_tasks()
     require("fzf-lua").live_grep({
         cwd = gtd.gtd_dir,
-        search = "^\\* (TODO|NEXT|WAITING)",
+        search = "^\\*+ (TODO|NEXT|WAITING)",
         no_esc = true,
         prompt_title = "Active Tasks Search",
     })
@@ -160,7 +160,8 @@ end
 -- 8. Setup Commands & Mappings
 function gtd.setup_commands()
     vim.api.nvim_create_user_command("GTDCapture", function(opts) gtd.capture(opts.args) end, { nargs = "?" })
-    vim.api.nvim_create_user_command("GTDTickler", function(opts) gtd.capture(opts.args, files.tickler) end, { nargs = "?" })
+    vim.api.nvim_create_user_command("GTDTickler", function(opts) gtd.capture(opts.args, files.tickler) end,
+        { nargs = "?" })
     vim.api.nvim_create_user_command("GTDClarify", gtd.clarify, {})
     vim.api.nvim_create_user_command("GTDReflect", gtd.reflect, {})
     vim.api.nvim_create_user_command("GTDEngage", gtd.engage, {})
