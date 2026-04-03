@@ -1,13 +1,7 @@
-(setq org-agenda-files '("~/my/notebook-private/org/"))
+(setq org-directory "~/vault/my/notebook/gtd/")
+(setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
 
-; use org mode from org mode melpa site
-(require 'package)
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
-
-(global-set-key "\C-cl" 'org-store-link)
-(global-set-key "\C-cc" 'org-capture)
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cb" 'org-iswitchb)
+(setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "PROGRESS(p)" "WAITING(w)" "|" "DONE(d)" "REJECTED(r)" "CANCELLED(c)")))
 
 
 (setq org-agenda-exporter-settings
@@ -68,20 +62,22 @@
          )))
 
 
-(setq org-default-notes-file (concat my-root "/notebook-private/org/Inbox.org"))
+(setq org-default-notes-file (concat org-directory "0-Inbox/inbox.org"))
 (global-set-key (kbd "C-c C-c") 'org-capture)
-(defvar gtd-home (concat my-root "notebook-private/org"))
-(setq org-capture-templates '(("t" "Todo [inbox]" entry
-                               (file+headline (concat gtd-home "/inbox.org") "Tasks")
-                               "* TODO %i%?")
-                              ("T" "Tickler" entry
-                               (file+headline (concat gtd-home "/tickler.org") "Tickler")
-                               "* %i%? \n %U")))
-(setq org-refile-targets '(((concat gtd-home "/gtd.org") :maxlevel . 3)
-                           ((concat gtd-home "/someday.org") :level . 1)
-                           ((concat gtd-home "/tickler.org") :maxlevel . 2)))
 
-(setq org-todo-keywords '((sequence "TODO(t)" "|" "WAITING(w)" "|" "DONE(d)" "|" "CANCELLED(c)")))
+(setq org-capture-templates
+      `(("t" "Todo [inbox]" entry
+         (file+headline ,(concat org-directory "0-Inbox/inbox.org") "Tasks")
+         "* TODO %i%?")
+        ("T" "Tickler" entry
+         (file+headline ,(concat org-directory "GTD-System/tickler.org") "Tickler")
+         "* %i%? \n %U")))
+
+(setq org-refile-targets
+      `((,(concat org-directory "GTD-System/next-actions.org") :maxlevel . 3)
+        (,(concat org-directory "GTD-System/someday-maybe.org") :level . 1)
+        (,(concat org-directory "GTD-System/waiting-for.org") :maxlevel . 2)
+        (,(concat org-directory "GTD-System/tickler.org") :maxlevel . 2)))
 
 (setq org-agenda-custom-commands 
       '(("o" "At the office" tags-todo "@office"

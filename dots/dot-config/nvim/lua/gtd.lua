@@ -4,7 +4,7 @@
 local gtd = {}
 
 -- 1. Configuration: Path Setup
-gtd.base_path = vim.fn.expand("~/my/notebook-private/SecondBrain/my/notebook")
+gtd.base_path = vim.fn.expand("~/vault/my/notebook")
 gtd.gtd_dir = gtd.base_path .. "/gtd"
 
 local files = {
@@ -13,6 +13,7 @@ local files = {
     someday = gtd.gtd_dir .. "/GTD-System/someday-maybe.org",
     waiting = gtd.gtd_dir .. "/GTD-System/waiting-for.org",
     review  = gtd.gtd_dir .. "/GTD-System/weekly-review.org",
+    tickler = gtd.gtd_dir .. "/GTD-System/tickler.org",
 }
 
 -- 2. Internal Helpers
@@ -43,22 +44,24 @@ local function refile_item(target_path, new_todo_state)
 end
 
 -- 3. Phase 1: CAPTURE
-function gtd.capture(task)
+function gtd.capture(task, target)
+    target = target or files.inbox
     if not task or task == "" then
-        task = vim.fn.input("GTD Capture (Inbox): ")
+        local prompt = (target == files.tickler) and "GTD Tickler: " or "GTD Capture (Inbox): "
+        task = vim.fn.input(prompt)
     end
     if task == "" then return end
 
     local date = os.date("%Y-%m-%d %a")
     local entry = string.format("\n* TODO %s\n  :PROPERTIES:\n  :CREATED: [%s]\n  :END:\n", task, date)
 
-    local f = io.open(files.inbox, "a")
+    local f = io.open(target, "a")
     if f then
         f:write(entry)
         f:close()
-        print("Captured to Inbox.")
+        print("Captured to " .. vim.fn.fnamemodify(target, ":t"))
     else
-        print("Error: Could not open Inbox file.")
+        print("Error: Could not open file: " .. target)
     end
 end
 
@@ -157,6 +160,7 @@ end
 -- 8. Setup Commands & Mappings
 function gtd.setup_commands()
     vim.api.nvim_create_user_command("GTDCapture", function(opts) gtd.capture(opts.args) end, { nargs = "?" })
+    vim.api.nvim_create_user_command("GTDTickler", function(opts) gtd.capture(opts.args, files.tickler) end, { nargs = "?" })
     vim.api.nvim_create_user_command("GTDClarify", gtd.clarify, {})
     vim.api.nvim_create_user_command("GTDReflect", gtd.reflect, {})
     vim.api.nvim_create_user_command("GTDEngage", gtd.engage, {})
@@ -165,11 +169,13 @@ end
 function gtd.setup_mappings()
     local opts = { silent = true }
     vim.keymap.set("n", "<leader>gc", ":GTDCapture<CR>", opts)
+    vim.keymap.set("n", "<leader>gt", ":GTDTickler<CR>", opts)
     vim.keymap.set("n", "<leader>gp", ":GTDClarify<CR>", opts)
     vim.keymap.set("n", "<leader>gr", ":GTDReflect<CR>", opts)
     vim.keymap.set("n", "<leader>ge", ":GTDEngage<CR>", opts)
     vim.keymap.set("n", "<leader>gi", function() open_file(files.inbox) end, opts)
     vim.keymap.set("n", "<leader>gn", function() open_file(files.next) end, opts)
+    vim.keymap.set("n", "<leader>gk", function() open_file(files.tickler) end, { desc = "GTD: Open Tickler" })
     vim.keymap.set("n", "<leader>sn", gtd.search_notes, { desc = "GTD: Search Notes" })
     vim.keymap.set("n", "<leader>st", gtd.search_tasks, { desc = "GTD: Search Active Tasks" })
 end

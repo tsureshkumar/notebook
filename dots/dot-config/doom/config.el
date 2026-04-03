@@ -29,10 +29,9 @@
       :n "N" (λ! (evil-ex-search-previous) (evil-scroll-line-to-center nil)))
 
 ;; ORG MODE
-(setq org-directory "~/org/")
+(setq org-directory (concat my-vault-root "gtd/"))
 (setq org-agenda-files
-      (append (directory-files-recursively org-directory "\\.org$")
-              (directory-files-recursively (concat my-vault-root "gtd/") "\\.org$")))
+      (directory-files-recursively org-directory "\\.org$"))
 
 
 (after! org
@@ -41,16 +40,28 @@
 
   (setq org-capture-templates
         `(("t" "Todo [inbox]" entry
-           (file+headline ,(concat org-directory "refile.org") "Tasks")
+           (file+headline ,(concat org-directory "0-Inbox/inbox.org") "Tasks")
            "* TODO %i%?")
           ("T" "Tickler" entry
-           (file+headline ,(concat my-vault-root "org/tickler.org") "Tickler")
+           (file+headline ,(concat org-directory "GTD-System/tickler.org") "Tickler")
            "* %i%? \n %U")))
 
   (setq org-refile-targets
-        `((,(concat org-directory "gtd.org") :maxlevel . 3)
-          (,(concat org-directory "someday.org") :level . 1)
-          (,(concat my-vault-root "org/tickler.org") :maxlevel . 2))))
+        `((,(concat org-directory "GTD-System/next-actions.org") :maxlevel . 3)
+          (,(concat org-directory "GTD-System/someday-maybe.org") :level . 1)
+          (,(concat org-directory "GTD-System/waiting-for.org") :maxlevel . 2)
+          (,(concat org-directory "GTD-System/tickler.org") :maxlevel . 2)))
+
+  (setq org-agenda-custom-commands
+        '(("P" "Projects" ((tags "PROJECT")))
+          ("H" "Home & Office"
+           ((agenda "" ((org-agenda-span 'day)))
+            (tags-todo "OFFICE")
+            (tags-todo "HOME")
+            (tags-todo "COMPUTER")
+            (tags-todo "READING")))
+          ("D" "Daily Action List" ((agenda "" ((org-agenda-span 'day)))))
+          ("o" "At the office" ((tags-todo "@office"))))))
 
 ;; LANGUAGE SPECIFIC
 (add-hook 'd2-mode-hook (lambda () (setq-local d2-ascii-preview t)))

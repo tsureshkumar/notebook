@@ -167,9 +167,20 @@ local plugins = {
         "nvim-lualine/lualine.nvim",
         dependencies = { "nvim-tree/nvim-web-devicons" },
         config = function()
+            local function org_breadcrumbs()
+                if vim.bo.filetype ~= "org" then return "" end
+                local ok, org = pcall(require, "orgmode")
+                if not ok then return "" end
+                return org.get_headline_path()
+            end
             require("lualine").setup({
                 options = { theme = "catppuccin", component_separators = "|", section_separators = "" },
-                sections = { lualine_c = { { "filename", path = 1 } } },
+                sections = { 
+                    lualine_c = { 
+                        { "filename", path = 1 },
+                        { org_breadcrumbs }
+                    } 
+                },
             })
         end,
     },
@@ -197,6 +208,8 @@ local plugins = {
     { "christoomey/vim-tmux-navigator" },
     { "junegunn/vim-easy-align",       keys = { { "ga", "<Plug>(EasyAlign)", mode = { "n", "x" } } } },
 
+    { "dhruvasagar/vim-table-mode", ft = { "markdown", "org" } },
+
     -- PRODUCTIVITY: Org & Markdown Suite
     {
         "nvim-orgmode/orgmode",
@@ -205,9 +218,22 @@ local plugins = {
         config = function()
             local vault_root = vim.fn.expand("~/vault/my/notebook/")
             require("orgmode").setup({
-                org_agenda_files = { "~/org/**/*", vault_root .. "gtd/**/*" },
-                org_default_notes_file = "~/org/refile.org",
-                org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)" },
+                org_agenda_files = { vault_root .. "gtd/**/*", vault_root .. "notes/**/*" },
+                org_default_notes_file = vault_root .. "gtd/0-Inbox/inbox.org",
+                org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)", "CANCELLED(c)" },
+                org_agenda_custom_commands = {
+                    P = { description = "Projects", types = { { type = "tags", query = "PROJECT" } } },
+                    H = { 
+                        description = "Home & Office", 
+                        types = { 
+                            { type = "agenda", org_agenda_span = "day" },
+                            { type = "tags_todo", query = "OFFICE" },
+                            { type = "tags_todo", query = "HOME" }
+                        } 
+                    },
+                    D = { description = "Daily Action List", types = { { type = "agenda", org_agenda_span = "day" } } },
+                    o = { description = "At the office", types = { { type = "tags_todo", query = "@office" } } },
+                },
                 ui = { menu = { handler = function(data) require("org-modern.menu"):new():open(data) end } },
             })
         end,
