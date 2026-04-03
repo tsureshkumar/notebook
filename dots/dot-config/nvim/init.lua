@@ -178,11 +178,11 @@ local plugins = {
             end
             require("lualine").setup({
                 options = { theme = "catppuccin", component_separators = "|", section_separators = "" },
-                sections = { 
-                    lualine_c = { 
+                sections = {
+                    lualine_c = {
                         { "filename", path = 1 },
                         org_breadcrumbs
-                    } 
+                    }
                 },
             })
         end,
@@ -211,7 +211,7 @@ local plugins = {
     { "christoomey/vim-tmux-navigator" },
     { "junegunn/vim-easy-align",       keys = { { "ga", "<Plug>(EasyAlign)", mode = { "n", "x" } } } },
 
-    { "dhruvasagar/vim-table-mode", ft = { "markdown", "org" } },
+    { "dhruvasagar/vim-table-mode",    ft = { "markdown", "org" } },
 
     -- PRODUCTIVITY: Org & Markdown Suite
     {
@@ -221,6 +221,20 @@ local plugins = {
         config = function()
             local vault_root = vim.fn.expand("~/vault/my/notebook/")
             local current_month = os.date("%B")
+            local current_quarter = "Q" .. math.ceil(tonumber(os.date("%m")) / 3)
+            local month_names = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            }
+            local current_month_num = tonumber(os.date("%m"))
+            local quarter = math.ceil(current_month_num / 3)
+            local start_idx = (quarter - 1) * 3 + 1
+
+            -- Join the three months of the current quarter
+            local q_months_match = month_names[start_idx] .. "|" ..
+                month_names[start_idx + 1] .. "|" ..
+                month_names[start_idx + 2]
+
 
             local function skip_if_subtree_has_todo()
                 local headline = require('orgmode.api').get_current_headline()
@@ -254,50 +268,74 @@ local plugins = {
                 org_default_notes_file = vault_root .. "gtd/0-Inbox/inbox.org",
                 org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)", "CANCELLED(c)" },
                 org_agenda_custom_commands = {
-                    P = { 
-                        label = "Projects",
-                        { type = "tags", query = "PROJECT" }
+                    P = {
+                        description = "Projects",
+                        types = {
+                            { type = "tags", query = "PROJECT" }
+                        },
                     },
-                    H = { 
-                        label = "Home & Office", 
-                        { type = "agenda", org_agenda_span = "day" },
-                        { type = "tags_todo", query = "OFFICE" },
-                        { type = "tags_todo", query = "HOME" }
+                    H = {
+                        description = "Home & Office",
+                        types = {
+                            { type = "agenda",    org_agenda_span = "day" },
+                            { type = "tags_todo", query = "OFFICE" },
+                            { type = "tags_todo", query = "HOME" }
+                        },
                     },
-                    D = { 
-                        label = "Daily Action List",
-                        { type = "agenda", org_agenda_span = "day" }
+                    D = {
+                        description = "Daily Action List",
+                        types = {
+                            { type = "agenda", org_agenda_span = "day" }
+                        },
                     },
-                    W = { 
-                        label = "Weekly Plan",
-                        { type = "agenda", org_agenda_span = "week" },
-                        { type = "tags_todo", query = current_month, org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks" }
+                    W = {
+                        description = "Weekly Plan",
+                        types = {
+                            { type = "agenda", org_agenda_span = "week" },
+                            {
+                                type = "tags_todo",
+                                match = current_month,
+                                org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks"
+                            },
+                        },
                     },
-                    M = { 
-                        label = "Monthly Plan",
-                        { type = "agenda", org_agenda_span = "month" },
-                        { type = "tags_todo", query = current_month, org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks" }
+                    M = {
+                        description = "Monthly Plan",
+                        types = {
+                            { type = "agenda",    org_agenda_span = "month" },
+                            { type = "tags_todo", match = current_month,    org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks" }
+                        },
                     },
-                    Q = { 
-                        label = "Quarterly Plan",
-                        { type = "agenda", org_agenda_span = 90 },
-                        { type = "tags_todo", query = current_month, org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks" }
+                    Q = {
+                        description = "Quarterly Plan",
+                        types = {
+                            { type = "agenda",    org_agenda_span = 90 },
+                            { type = "tags_todo", match = q_months_match, org_agenda_overriding_header = "Unscheduled " .. current_quarter .. " Tasks" }
+                        },
                     },
-                    r = { 
-                        label = "Recently Added Projects",
-                        { type = "tags", query = "PROJECT", org_agenda_sorting_strategy = { "priority-down", "category-up" } }
+                    r = {
+                        description = "Recently Added Projects",
+                        types = {
+                            { type = "tags", query = "PROJECT", org_agenda_sorting_strategy = { "priority-down", "category-up" } }
+                        },
                     },
-                    E = { 
-                        label = "Empty Projects (No active tasks in subtree)",
-                        { type = "tags", query = "PROJECT", org_agenda_skip_function = skip_if_subtree_has_todo }
+                    E = {
+                        description = "Empty Projects (No active tasks in subtree)",
+                        types = {
+                            { type = "tags", query = "PROJECT", org_agenda_skip_function = skip_if_subtree_has_todo }
+                        },
                     },
-                    S = { 
-                        label = "Stuck Projects (Missing NEXT action in subtree)",
-                        { type = "tags", query = "PROJECT", org_agenda_skip_function = skip_if_subtree_has_next }
+                    S = {
+                        description = "Stuck Projects (Missing NEXT action in subtree)",
+                        types = {
+                            { type = "tags", query = "PROJECT", org_agenda_skip_function = skip_if_subtree_has_next }
+                        },
                     },
-                    o = { 
-                        label = "At the office",
-                        { type = "tags_todo", query = "@office" }
+                    o = {
+                        description = "At the office",
+                        types = {
+                            { type = "tags_todo", query = "@office" }
+                        },
                     },
                 },
                 ui = { menu = { handler = function(data) require("org-modern.menu"):new():open(data) end } },
