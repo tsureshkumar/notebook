@@ -11,12 +11,19 @@ function M.open_quarterly_agenda()
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"
         }
-        
-        local start_idx = (q - 1) * 3 + 1
-        local match_str = table.concat({month_names[start_idx], month_names[start_idx+1], month_names[start_idx+2]}, "|")
 
-        -- Call the orgmode agenda directly with our dynamic match
-        require('orgmode').agenda:set_filters(match_str):render()
+        local start_idx = (q - 1) * 3 + 1
+        local match_str = table.concat(
+            { month_names[start_idx], month_names[start_idx + 1], month_names[start_idx + 2] },
+            "|")
+
+        -- We trigger the agenda 'M' (Tags/Todo) command, then "type" the months and press Enter
+        -- The <Ignore> at the end helps prevent accidental double-triggers
+        local keys = vim.api.nvim_replace_termcodes(
+            string.format(":Org agenda M<CR>%s<CR>", match_str),
+            true, false, true
+        )
+        vim.api.nvim_feedkeys(keys, 'm', false)
     end)
 end
 
@@ -66,6 +73,9 @@ function M.setup()
     end
 
     require("orgmode").setup({
+        org_agenda_sorting_strategy = {
+            tags = { 'tag-up', 'priority-down', 'category-keep' },
+        },
         org_agenda_files = { vault_root .. "gtd/**/*", vault_root .. "notes/**/*" },
         org_default_notes_file = vault_root .. "gtd/0-Inbox/inbox.org",
         org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)", "CANCELLED(c)" },
@@ -101,7 +111,7 @@ function M.setup()
                     },
                 },
             },
-            M = {
+            K = {
                 description = "Monthly Plan",
                 types = {
                     { type = "agenda",    org_agenda_span = "month" },
@@ -117,7 +127,12 @@ function M.setup()
             },
             X = {
                 description = "Pick a Quarter...",
-                action = M.open_quarterly_agenda
+                action = function()
+                    open_quarterly_agenda()
+                end,
+                types = {
+                    { type = "agenda", org_agenda_span = 90 },
+                } -- Ensure types table exists to avoid ipairs error in some orgmode versions
             },
             r = {
                 description = "Recently Added Projects",
