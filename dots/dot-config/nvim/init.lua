@@ -376,7 +376,11 @@ pcall(function() require("gtd").init() end)
 local function export_markdown(format)
     local file = vim.fn.expand("%:p")
     local output = vim.fn.expand("%:p:r") .. "." .. format
-    local cmd = string.format("pandoc %s -o %s", vim.fn.shellescape(file), vim.fn.shellescape(output))
+    local extra_args = ""
+    if format == "pdf" then
+        extra_args = "-V geometry:\"margin=1in,a4paper\" -V fontsize=12pt"
+    end
+    local cmd = string.format("pandoc %s %s -o %s", vim.fn.shellescape(file), extra_args, vim.fn.shellescape(output))
     print("Exporting Markdown to " .. format .. "...")
     vim.fn.jobstart(cmd, {
         on_exit = function(_, code)

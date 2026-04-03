@@ -28,7 +28,11 @@ end
 function M.export_buffer(format)
     local file = vim.fn.expand("%:p")
     local output = vim.fn.expand("%:p:r") .. "." .. format
-    local cmd = string.format("pandoc %s -o %s", vim.fn.shellescape(file), vim.fn.shellescape(output))
+    local extra_args = ""
+    if format == "pdf" then
+        extra_args = "-V geometry:\"margin=0.5in,a4paper\" -V fontsize=12pt"
+    end
+    local cmd = string.format("pandoc %s %s -o %s", vim.fn.shellescape(file), extra_args, vim.fn.shellescape(output))
     
     print("Exporting to " .. format .. "...")
     vim.fn.jobstart(cmd, {
