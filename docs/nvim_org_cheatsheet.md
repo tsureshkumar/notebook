@@ -50,6 +50,13 @@
 - **<leader>tr**: Realign table
 - **|**: Trigger table creation (when in Table Mode)
 
+## 📤 Exporting (Pandoc)
+- **<leader>oeh**: Export Org to HTML
+- **<leader>oem**: Export Org to Markdown
+- **<leader>oep**: Export Org to PDF
+- **<leader>meh**: Export Markdown to HTML
+- **<leader>mep**: Export Markdown to PDF
+
 ## 📁 Shared File Structure (`~/vault/my/notebook/gtd/`)
 - **0-Inbox/inbox.org**: New captures
 - **GTD-System/next-actions.org**: Active tasks

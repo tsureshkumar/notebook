@@ -17,14 +17,29 @@ function M.open_quarterly_agenda()
             { month_names[start_idx], month_names[start_idx + 1], month_names[start_idx + 2] },
             "|")
 
-        -- We trigger the agenda 'M' (Tags/Todo) command, then "type" the months and press Enter
-        -- The <Ignore> at the end helps prevent accidental double-triggers
         local keys = vim.api.nvim_replace_termcodes(
             string.format(":Org agenda M<CR>%s<CR>", match_str),
             true, false, true
         )
         vim.api.nvim_feedkeys(keys, 'm', false)
     end)
+end
+
+function M.export_buffer(format)
+    local file = vim.fn.expand("%:p")
+    local output = vim.fn.expand("%:p:r") .. "." .. format
+    local cmd = string.format("pandoc %s -o %s", vim.fn.shellescape(file), vim.fn.shellescape(output))
+    
+    print("Exporting to " .. format .. "...")
+    vim.fn.jobstart(cmd, {
+        on_exit = function(_, code)
+            if code == 0 then
+                print("Export successful: " .. output)
+            else
+                print("Export failed for " .. format)
+            end
+        end
+    })
 end
 
 function M.setup()
@@ -127,12 +142,8 @@ function M.setup()
             },
             X = {
                 description = "Pick a Quarter...",
-                action = function()
-                    open_quarterly_agenda()
-                end,
-                types = {
-                    { type = "agenda", org_agenda_span = 90 },
-                } -- Ensure types table exists to avoid ipairs error in some orgmode versions
+                action = M.open_quarterly_agenda,
+                types = {}
             },
             r = {
                 description = "Recently Added Projects",
@@ -163,6 +174,20 @@ function M.setup()
     })
 
     vim.api.nvim_create_user_command("OrgQuarterlyAgenda", M.open_quarterly_agenda, {})
+    
+    -- Export Commands
+    vim.api.nvim_create_user_command("OrgExportHTML", function() M.export_buffer("html") end, {})
+    vim.api.nvim_create_user_command("OrgExportMarkdown", function() M.export_buffer("md") end, {})
+    vim.api.nvim_create_user_command("OrgExportPDF", function() M.export_buffer("pdf") end, {})
+    
+    vim.api.nvim_create_autocmd("FileType", {
+        pattern = "org",
+        callback = function()
+            vim.keymap.set("n", "<leader>oeh", ":OrgExportHTML<CR>", { desc = "Org: Export to HTML", buffer = true })
+            vim.keymap.set("n", "<leader>oem", ":OrgExportMarkdown<CR>", { desc = "Org: Export to Markdown", buffer = true })
+            vim.keymap.set("n", "<leader>oep", ":OrgExportPDF<CR>", { desc = "Org: Export to PDF", buffer = true })
+        end
+    })
 end
 
 return M

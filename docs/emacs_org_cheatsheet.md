@@ -45,6 +45,12 @@
 - **M-Left/Right**: Move column
 - **M-Up/Down**: Move row
 
+## 📤 Exporting (Built-in)
+- **C-c C-e**: Open export dispatcher
+- **C-c C-e h h**: Export to HTML
+- **C-c C-e m m**: Export to Markdown
+- **C-c C-e l p**: Export to PDF (via LaTeX)
+
 ## 📁 Shared File Structure (`~/vault/my/notebook/gtd/`)
 - **0-Inbox/inbox.org**: New captures
 - **GTD-System/next-actions.org**: Active tasks

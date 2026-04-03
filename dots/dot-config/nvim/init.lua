@@ -371,6 +371,31 @@ require("lazy").setup(plugins, {
 
 -- Final setup
 pcall(function() require("gtd").init() end)
+
+-- Markdown Export Utilities
+local function export_markdown(format)
+    local file = vim.fn.expand("%:p")
+    local output = vim.fn.expand("%:p:r") .. "." .. format
+    local cmd = string.format("pandoc %s -o %s", vim.fn.shellescape(file), vim.fn.shellescape(output))
+    print("Exporting Markdown to " .. format .. "...")
+    vim.fn.jobstart(cmd, {
+        on_exit = function(_, code)
+            if code == 0 then print("Export successful: " .. output) else print("Export failed") end
+        end
+    })
+end
+
+vim.api.nvim_create_user_command("MdExportHTML", function() export_markdown("html") end, {})
+vim.api.nvim_create_user_command("MdExportPDF", function() export_markdown("pdf") end, {})
+
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "markdown",
+    callback = function()
+        vim.keymap.set("n", "<leader>meh", ":MdExportHTML<CR>", { desc = "Markdown: Export to HTML", buffer = true })
+        vim.keymap.set("n", "<leader>mep", ":MdExportPDF<CR>", { desc = "Markdown: Export to PDF", buffer = true })
+    end
+})
+
 vim.filetype.add({ extension = { d2 = "d2", qnt = "quint" } })
 local ok, ab = pcall(require, "agent-bridge")
 if ok then ab.setup({ host = "127.0.0.1", port = 7777, enable_shell = true }) end
