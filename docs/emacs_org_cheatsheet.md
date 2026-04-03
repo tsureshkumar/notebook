@@ -17,6 +17,12 @@
   - **P**: Projects (tags "PROJECT")
   - **H**: Home & Office (Daily + Tags)
   - **D**: Daily Action List
+  - **W**: Weekly Plan (7-day agenda)
+  - **M**: Monthly Plan (30-day agenda)
+  - **Q**: Quarterly Plan (90-day agenda)
+  - **r**: Recently Added Projects (sorted)
+  - **E**: Empty Projects (No active tasks)
+  - **S**: Stuck Projects (Missing NEXT action)
   - **o**: At the office (tags "@office")
 
 ## 🛠️ Core Org Keymaps (Doom/Evil)

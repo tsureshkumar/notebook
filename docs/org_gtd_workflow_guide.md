@@ -29,15 +29,15 @@ For anyone looking to clear their mind and stay organized, the workflow follows 
 - **Tickler:** Move to `GTD-System/tickler.org`. Future reminders (e.g., "Renew passport in 6 months").
 - **Projects:** Mark the top-level heading with a `:PROJECT:` tag.
 
-### 4. Reflect (The Weekly Review)
-**Goal:** Keep the system "clean, clear, and current."
-- **Action:** Once a week, open `GTD-System/weekly-review.org`. 
-- **The Checklist:**
-    1. Clear your physical and digital inboxes.
-    2. Review your "Waiting For" list—send follow-up emails.
-    3. Review "Next Actions"—mark things as DONE.
-    4. Review "Someday/Maybe"—is it time to start that project?
-- **Org Tip:** Use the Agenda View (`SPC a o` or `<leader>oa`) to see the week ahead.
+### 4. Reflect (The Weekly, Monthly, and Quarterly Review)
+**Goal:** Keep the system "clean, clear, and current" across all horizons.
+- **Weekly Review (W):** Focus on the next 7 days. Clear inboxes and update "Next Actions."
+- **Monthly Review (M):** Focus on broader goals and deadlines for the month. 
+- **Quarterly Review (Q):** High-level alignment. Check if projects align with your 3-month objectives.
+- **Project Health Checks:**
+    - **Recently Added (r):** Review newly captured projects to ensure they are clarified.
+    - **Empty Projects (E):** Find projects that have no active tasks—these are usually projects that have stalled or need new actions defined.
+    - **Stuck Projects (S) [Emacs]:** Find projects that are missing a `NEXT` action. In GTD, every project should have at least one defined physical next step.
 
 ### 5. Engage (Just Do It)
 **Goal:** Choose your best action based on Context, Time, and Energy.

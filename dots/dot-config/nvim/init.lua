@@ -169,16 +169,19 @@ local plugins = {
         config = function()
             local function org_breadcrumbs()
                 if vim.bo.filetype ~= "org" then return "" end
-                local ok, org = pcall(require, "orgmode")
+                local ok, org_api = pcall(require, "orgmode.api")
                 if not ok then return "" end
-                return org.get_headline_path()
+                local headline = org_api.get_current_headline()
+                if not headline then return "" end
+                local path = headline:get_headline_path()
+                return table.concat(path, " > ")
             end
             require("lualine").setup({
                 options = { theme = "catppuccin", component_separators = "|", section_separators = "" },
                 sections = { 
                     lualine_c = { 
                         { "filename", path = 1 },
-                        { org_breadcrumbs }
+                        org_breadcrumbs
                     } 
                 },
             })
@@ -217,22 +220,85 @@ local plugins = {
         ft = { "org" },
         config = function()
             local vault_root = vim.fn.expand("~/vault/my/notebook/")
+            local current_month = os.date("%B")
+
+            local function skip_if_subtree_has_todo()
+                local headline = require('orgmode.api').get_current_headline()
+                if not headline then return end
+                local has_todo = false
+                for _, child in ipairs(headline:get_all_child_headlines()) do
+                    local todo = child:get_todo()
+                    if todo and vim.tbl_contains({ "TODO", "NEXT", "PROGRESS", "WAITING" }, todo) then
+                        has_todo = true
+                        break
+                    end
+                end
+                if has_todo then return headline:get_subtree_end() end
+            end
+
+            local function skip_if_subtree_has_next()
+                local headline = require('orgmode.api').get_current_headline()
+                if not headline then return end
+                local has_next = false
+                for _, child in ipairs(headline:get_all_child_headlines()) do
+                    if child:get_todo() == "NEXT" then
+                        has_next = true
+                        break
+                    end
+                end
+                if has_next then return headline:get_subtree_end() end
+            end
+
             require("orgmode").setup({
                 org_agenda_files = { vault_root .. "gtd/**/*", vault_root .. "notes/**/*" },
                 org_default_notes_file = vault_root .. "gtd/0-Inbox/inbox.org",
                 org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)", "CANCELLED(c)" },
                 org_agenda_custom_commands = {
-                    P = { description = "Projects", types = { { type = "tags", query = "PROJECT" } } },
-                    H = { 
-                        description = "Home & Office", 
-                        types = { 
-                            { type = "agenda", org_agenda_span = "day" },
-                            { type = "tags_todo", query = "OFFICE" },
-                            { type = "tags_todo", query = "HOME" }
-                        } 
+                    P = { 
+                        label = "Projects",
+                        { type = "tags", query = "PROJECT" }
                     },
-                    D = { description = "Daily Action List", types = { { type = "agenda", org_agenda_span = "day" } } },
-                    o = { description = "At the office", types = { { type = "tags_todo", query = "@office" } } },
+                    H = { 
+                        label = "Home & Office", 
+                        { type = "agenda", org_agenda_span = "day" },
+                        { type = "tags_todo", query = "OFFICE" },
+                        { type = "tags_todo", query = "HOME" }
+                    },
+                    D = { 
+                        label = "Daily Action List",
+                        { type = "agenda", org_agenda_span = "day" }
+                    },
+                    W = { 
+                        label = "Weekly Plan",
+                        { type = "agenda", org_agenda_span = "week" },
+                        { type = "tags_todo", query = current_month, org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks" }
+                    },
+                    M = { 
+                        label = "Monthly Plan",
+                        { type = "agenda", org_agenda_span = "month" },
+                        { type = "tags_todo", query = current_month, org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks" }
+                    },
+                    Q = { 
+                        label = "Quarterly Plan",
+                        { type = "agenda", org_agenda_span = 90 },
+                        { type = "tags_todo", query = current_month, org_agenda_overriding_header = "Unscheduled " .. current_month .. " Tasks" }
+                    },
+                    r = { 
+                        label = "Recently Added Projects",
+                        { type = "tags", query = "PROJECT", org_agenda_sorting_strategy = { "priority-down", "category-up" } }
+                    },
+                    E = { 
+                        label = "Empty Projects (No active tasks in subtree)",
+                        { type = "tags", query = "PROJECT", org_agenda_skip_function = skip_if_subtree_has_todo }
+                    },
+                    S = { 
+                        label = "Stuck Projects (Missing NEXT action in subtree)",
+                        { type = "tags", query = "PROJECT", org_agenda_skip_function = skip_if_subtree_has_next }
+                    },
+                    o = { 
+                        label = "At the office",
+                        { type = "tags_todo", query = "@office" }
+                    },
                 },
                 ui = { menu = { handler = function(data) require("org-modern.menu"):new():open(data) end } },
             })

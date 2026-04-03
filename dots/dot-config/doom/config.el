@@ -53,15 +53,46 @@
           (,(concat org-directory "GTD-System/tickler.org") :maxlevel . 2)))
 
   (setq org-agenda-custom-commands
-        '(("P" "Projects" ((tags "PROJECT")))
+        `(("P" "Projects" tags "PROJECT")
           ("H" "Home & Office"
            ((agenda "" ((org-agenda-span 'day)))
             (tags-todo "OFFICE")
             (tags-todo "HOME")
             (tags-todo "COMPUTER")
             (tags-todo "READING")))
-          ("D" "Daily Action List" ((agenda "" ((org-agenda-span 'day)))))
-          ("o" "At the office" ((tags-todo "@office"))))))
+          ("D" "Daily Action List" agenda "" ((org-agenda-span 'day)))
+          ("W" "Weekly Review & Plan" 
+           ((agenda "" ((org-agenda-span 'week)))
+            (tags ,(format-time-string "%B"))))
+          ("M" "Monthly Review" 
+           ((agenda "" ((org-agenda-span 'month)))
+            (tags ,(format-time-string "%B"))))
+          ("Q" "Quarterly Review" 
+           ((agenda "" ((org-agenda-span 90)))
+            (tags ,(format-time-string "%B"))))
+          ("r" "Recently Added Projects"
+           tags "PROJECT"
+           ((org-agenda-overriding-header "Recently Added Projects")
+            (org-agenda-sorting-strategy '(ts-down))))
+          ("E" "Empty Projects (No Actions)"
+           tags "PROJECT"
+           ((org-agenda-overriding-header "Empty Projects (No active tasks in subtree)")
+            (org-agenda-skip-function
+             (lambda ()
+               (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+                 (if (re-search-forward (concat "\\*\\s-+\\(" (mapconcat 'regexp-quote '("TODO" "NEXT" "PROGRESS" "WAITING") "\\|") "\\)") subtree-end t)
+                     subtree-end
+                   nil))))))
+          ("S" "Stuck Projects (No NEXT)"
+           tags "PROJECT"
+           ((org-agenda-overriding-header "Stuck Projects (Missing NEXT action in subtree)")
+            (org-agenda-skip-function
+             (lambda ()
+               (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+                 (if (re-search-forward "\\*\\s-+NEXT" subtree-end t)
+                     subtree-end
+                   nil))))))
+          ("o" "At the office" tags-todo "@office"))))
 
 ;; LANGUAGE SPECIFIC
 (add-hook 'd2-mode-hook (lambda () (setq-local d2-ascii-preview t)))
