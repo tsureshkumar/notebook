@@ -33,7 +33,7 @@ function M.export_buffer(format)
         extra_args = "-V geometry:\"margin=0.5in,a4paper\" -V fontsize=12pt"
     end
     local cmd = string.format("pandoc %s %s -o %s", vim.fn.shellescape(file), extra_args, vim.fn.shellescape(output))
-    
+
     print("Exporting to " .. format .. "...")
     vim.fn.jobstart(cmd, {
         on_exit = function(_, code)
@@ -98,7 +98,31 @@ function M.setup()
         org_agenda_files = { vault_root .. "gtd/**/*", vault_root .. "notes/**/*" },
         org_default_notes_file = vault_root .. "gtd/0-Inbox/inbox.org",
         org_todo_keywords = { "TODO(t)", "PROGRESS(p)", "NEXT(n)", "WAITING(w)", "|", "DONE(d)", "REJECTED(r)", "CANCELLED(c)" },
+        mappings = {
+            org = {
+                org_refile = '<leader>or',
+            },
+            agenda = {
+                org_agenda_switch_to = 'E',
+                org_agenda_goto = '<CR>',
+                org_insert_todo_heading = 'C-CR',
+                org_agenda_bulk_mark = 'x',
+                org_agenda_bulk_unmark = 'X',
+                org_agenda_bulk_action = 'B',
+            }
+        },
         org_agenda_custom_commands = {
+            i = {
+                description = "Inbox (Bulk Refile)",
+                types = {
+                    {
+                        type = "tags_todo",
+                        match = "",
+                        org_agenda_files = { vault_root .. "gtd/0-Inbox/inbox.org" },
+                        org_agenda_overriding_header = "Inbox Tasks - Mark with 'x' and use 'B r' to refile"
+                    }
+                }
+            },
             P = {
                 description = "Projects",
                 types = {
@@ -178,17 +202,40 @@ function M.setup()
     })
 
     vim.api.nvim_create_user_command("OrgQuarterlyAgenda", M.open_quarterly_agenda, {})
-    
+
     -- Export Commands
     vim.api.nvim_create_user_command("OrgExportHTML", function() M.export_buffer("html") end, {})
     vim.api.nvim_create_user_command("OrgExportMarkdown", function() M.export_buffer("md") end, {})
     vim.api.nvim_create_user_command("OrgExportPDF", function() M.export_buffer("pdf") end, {})
-    
+
     vim.api.nvim_create_autocmd("FileType", {
         pattern = "org",
         callback = function()
+            -- Set conceallevel for Obsidian and better org-mode look
+            vim.opt_local.conceallevel = 2
+            vim.opt_local.concealcursor = 'nc'
+
+            -- Shift+Enter: Insert TODO heading below
+            vim.keymap.set({ "n", "i" }, "<S-CR>", function()
+                require('orgmode').action('org_mappings.insert_todo_heading')
+            end, { buffer = true, desc = "Org: Insert TODO Heading" })
+
+            -- Ctrl+Shift+Enter: Insert TODO heading below and schedule today
+            vim.keymap.set({ "n", "i" }, "<C-S-CR>", function()
+                require('orgmode').action('org_mappings.insert_todo_heading')
+                vim.defer_fn(function()
+                    local api = require('orgmode').api
+                    local headline = api.get_current_headline()
+                    if headline then
+                        headline:set_scheduled(os.date('%Y-%m-%d'))
+                        vim.cmd("startinsert!")
+                    end
+                end, 150)
+            end, { buffer = true, desc = "Org: Insert TODO Scheduled Today" })
+
             vim.keymap.set("n", "<leader>oeh", ":OrgExportHTML<CR>", { desc = "Org: Export to HTML", buffer = true })
-            vim.keymap.set("n", "<leader>oem", ":OrgExportMarkdown<CR>", { desc = "Org: Export to Markdown", buffer = true })
+            vim.keymap.set("n", "<leader>oem", ":OrgExportMarkdown<CR>",
+                { desc = "Org: Export to Markdown", buffer = true })
             vim.keymap.set("n", "<leader>oep", ":OrgExportPDF<CR>", { desc = "Org: Export to PDF", buffer = true })
         end
     })
