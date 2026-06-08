@@ -184,13 +184,6 @@ end
 function gtd.init()
     gtd.setup_commands()
     gtd.setup_mappings()
-    local ok, org = pcall(require, "orgmode")
-    if ok then
-        org.setup({
-            org_agenda_files = { gtd.gtd_dir .. "/**/*" },
-            org_default_notes_file = files.inbox,
-        })
-    end
 end
 
 return gtd

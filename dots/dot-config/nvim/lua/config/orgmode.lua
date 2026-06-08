@@ -239,6 +239,25 @@ function M.setup()
             vim.keymap.set("n", "<leader>oep", ":OrgExportPDF<CR>", { desc = "Org: Export to PDF", buffer = true })
         end
     })
+
+    vim.api.nvim_create_autocmd("FileType", {
+        pattern = "orgagenda",
+        callback = function()
+            vim.keymap.set("n", "x", function()
+                local ok = pcall(function() require('orgmode').action('agenda.org_agenda_bulk_mark') end)
+                if not ok then
+                    require('orgmode').action('org_agenda_bulk_mark')
+                end
+            end, { buffer = true, desc = "Org Agenda: Bulk Mark" })
+
+            vim.keymap.set("n", "B", function()
+                local ok = pcall(function() require('orgmode').action('agenda.org_agenda_bulk_action') end)
+                if not ok then
+                    require('orgmode').action('org_agenda_bulk_action')
+                end
+            end, { buffer = true, desc = "Org Agenda: Bulk Action" })
+        end
+    })
 end
 
 return M
