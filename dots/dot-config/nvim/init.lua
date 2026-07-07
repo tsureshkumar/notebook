@@ -353,6 +353,16 @@ local plugins = {
     { "iamcco/markdown-preview.nvim", ft = "markdown",                                                                                                                                                                            build = "cd app && npm install" },
     { "terrastruct/d2-vim",           ft = { "d2" },                                                                                                                                                                              config = function() vim.g.d2_ascii_preview = 1 end },
     { "rmagatti/auto-session",        lazy = false,                                                                                                                                                                               opts = { auto_restore_enabled = true } },
+    {
+        "Shougo/neosnippet.vim",
+        dependencies = { "Shougo/neosnippet-snippets" },
+        config = function()
+            vim.g["neosnippet#snippets_directory"] = vim.fn.expand("~/my/notebook/dots/vim-neosnippets")
+            vim.keymap.set("i", "<C-k>", "<Plug>(neosnippet_expand_or_jump)")
+            vim.keymap.set("s", "<C-k>", "<Plug>(neosnippet_expand_or_jump)")
+            vim.keymap.set("x", "<C-k>", "<Plug>(neosnippet_expand_target)")
+        end
+    },
 }
 
 -- If dev.lua exists and returned a table, merge it into the plugins list
