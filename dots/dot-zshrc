@@ -223,3 +223,7 @@ eval "$(mise activate zsh)"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 . "$HOME/.cargo/env"
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/tsureshkumar/.local/bin:$PATH"
