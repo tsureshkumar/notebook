@@ -1374,12 +1374,12 @@ abbr build suffix array
 
         debug("here");
 
-#if DEBUG==1
+        #if DEBUG==1
         rep(i,n) {setw(3); put(i); } putl();
         rep(i,n) {setw(3); put(line[i]); } putl();
         rep(i,n) {setw(3); put(sa[i]); } putl();
         rep(i,n) debug(i, sa[i], prev_sa[i], plcp[i], lcp[i], line.substr(sa[i]));
-#endif // DEBUG
+        #endif // DEBUG
     };
 
 snippet kmp
