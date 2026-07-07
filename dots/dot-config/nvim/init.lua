@@ -304,8 +304,22 @@ local plugins = {
         dependencies = { "hrsh7th/cmp-nvim-lsp", "hrsh7th/cmp-buffer", "hrsh7th/cmp-path", "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip" },
         config = function()
             local cmp = require("cmp")
+            local ls = require("luasnip")
+
+            -- Load custom snippets from snipmate format
+            require("luasnip.loaders.from_snipmate").lazy_load({
+                paths = { vim.fn.expand("~/my/notebook/dots/vim-neosnippets") }
+            })
+
+            -- Map Ctrl+k to expand or jump
+            vim.keymap.set({"i", "s"}, "<C-k>", function()
+                if ls.expand_or_jumpable() then
+                    ls.expand_or_jump()
+                end
+            end, { silent = true })
+
             cmp.setup({
-                snippet = { expand = function(args) require("luasnip").lsp_expand(args.body) end },
+                snippet = { expand = function(args) ls.lsp_expand(args.body) end },
                 mapping = cmp.mapping.preset.insert({
                     ["<CR>"] = cmp.mapping.confirm({ select = true }),
                     ["<C-Space>"] =
@@ -353,16 +367,6 @@ local plugins = {
     { "iamcco/markdown-preview.nvim", ft = "markdown",                                                                                                                                                                            build = "cd app && npm install" },
     { "terrastruct/d2-vim",           ft = { "d2" },                                                                                                                                                                              config = function() vim.g.d2_ascii_preview = 1 end },
     { "rmagatti/auto-session",        lazy = false,                                                                                                                                                                               opts = { auto_restore_enabled = true } },
-    {
-        "Shougo/neosnippet.vim",
-        dependencies = { "Shougo/neosnippet-snippets" },
-        config = function()
-            vim.g["neosnippet#snippets_directory"] = vim.fn.expand("~/my/notebook/dots/vim-neosnippets")
-            vim.keymap.set("i", "<C-k>", "<Plug>(neosnippet_expand_or_jump)")
-            vim.keymap.set("s", "<C-k>", "<Plug>(neosnippet_expand_or_jump)")
-            vim.keymap.set("x", "<C-k>", "<Plug>(neosnippet_expand_target)")
-        end
-    },
 }
 
 -- If dev.lua exists and returned a table, merge it into the plugins list
