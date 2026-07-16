@@ -66,7 +66,30 @@ nnoremap ]q :cnext<cr>zz
 nnoremap [q :cprev<cr>zz
 nnoremap <F7> :make!<cr>
 nnoremap <S-F7> :make clean all<cr>
-nnoremap <F5> :!./%<<cr>
+nnoremap <F5> :!cd %:p:h && touch %:t:r.input && time ./build/%:t:r < %:t:r.input \| tee %:t:r.output<cr>
+nnoremap <leader>r :!cd %:p:h && touch %:t:r.input && time ./build/%:t:r < %:t:r.input \| tee %:t:r.output<cr>
+
+function! MakeOrCompile()
+    let l:file_dir = expand('%:p:h')
+    if filereadable(l:file_dir . '/Makefile') || filereadable(l:file_dir . '/makefile')
+        let &l:makeprg = 'make -C %:p:h:S %:t:r'
+        make!
+    else
+        let l:ft = &filetype
+        if l:ft ==# 'cpp'
+            let &l:makeprg = 'mkdir -p %:p:h/build && g++ -std=c++17 -O2 -g -DDEBUG=1 -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r'
+            make!
+        elseif l:ft ==# 'c'
+            let &l:makeprg = 'mkdir -p %:p:h/build && gcc -O2 -g -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r'
+            make!
+        else
+            echo "No Makefile found in " . l:file_dir . " and filetype '" . l:ft . "' is not supported for standalone compilation."
+            return
+        endif
+    endif
+    cwindow
+endfunction
+nnoremap <leader>m :call MakeOrCompile()<cr>
 
 " Navigation
 nnoremap k gk
@@ -210,6 +233,64 @@ function! SumVis()
     endtry
 endfunction
 vnoremap <leader>s :<C-u>call SumVis()<cr>
+
+" Competitive Programming layout helper: | |-| layout
+" Left pane has name.cpp, top right has name.input, bottom right has name.output.
+function! s:GetCpLayoutWins()
+    let l:layout = winlayout()
+    if l:layout[0] ==# 'row' && len(l:layout[1]) == 2
+        let l:left = l:layout[1][0]
+        let l:right = l:layout[1][1]
+        if l:left[0] ==# 'leaf' && l:right[0] ==# 'col' && len(l:right[1]) == 2
+            let l:topright = l:right[1][0]
+            let l:bottomright = l:right[1][1]
+            if l:topright[0] ==# 'leaf' && l:bottomright[0] ==# 'leaf'
+                return [l:left[1], l:topright[1], l:bottomright[1]]
+            endif
+        endif
+    endif
+    return []
+endfunction
+
+function! s:OpenCpLayout(name)
+    let l:name = a:name
+    if empty(l:name)
+        let l:name = expand('%:p:r')
+    else
+        let l:name = fnamemodify(l:name, ':r')
+    endif
+    if empty(l:name)
+        let l:name = 'main'
+    endif
+
+    let l:wins = s:GetCpLayoutWins()
+    if empty(l:wins)
+        " Rebuild layout: left pane full height, right pane split horizontally
+        only
+        let l:win_left = win_getid()
+        execute 'rightbelow vsplit'
+        let l:win_topright = win_getid()
+        execute 'rightbelow split'
+        let l:win_bottomright = win_getid()
+        let l:wins = [l:win_left, l:win_topright, l:win_bottomright]
+    endif
+
+    " Load the files in their respective windows
+    call win_gotoid(l:wins[0])
+    execute 'edit ' . l:name . '.cpp'
+
+    call win_gotoid(l:wins[1])
+    execute 'edit ' . l:name . '.input'
+
+    call win_gotoid(l:wins[2])
+    execute 'edit ' . l:name . '.output'
+
+    " Return focus to the code window (left)
+    call win_gotoid(l:wins[0])
+endfunction
+
+command! -nargs=? -complete=file CP call s:OpenCpLayout(<q-args>)
+command! -nargs=? -complete=file CpLayout call s:OpenCpLayout(<q-args>)
 
 " Neosnippet Configuration
 let g:neosnippet#snippets_directory = '~/my/notebook/dots/vim-neosnippets'

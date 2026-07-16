@@ -4,3 +4,4 @@
 *.orig
 pack/
 dots/dot-config/nvim/lua/dev.lua
+.cursorrules

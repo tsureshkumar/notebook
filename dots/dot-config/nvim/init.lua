@@ -64,7 +64,30 @@ map("n", "]q", ":cnext<cr>zz")
 map("n", "[q", ":cprev<cr>zz")
 map("n", "<F7>", ":make!<cr>", { desc = "Run Make" })
 map("n", "<S-F7>", ":make clean all<cr>", { desc = "Make Clean All" })
-map("n", "<F5>", ":!./%<<cr>", { desc = "Run compiled binary" })
+map("n", "<F5>", ":!cd %:p:h && touch %:t:r.input && time ./build/%:t:r < %:t:r.input | tee %:t:r.output<cr>", { desc = "Run with input and tee output" })
+map("n", "<leader>r", ":!cd %:p:h && touch %:t:r.input && time ./build/%:t:r < %:t:r.input | tee %:t:r.output<cr>", { desc = "Run with input and tee output" })
+
+local function make_or_compile()
+    local file_dir = vim.fn.expand("%:p:h")
+    if vim.fn.filereadable(file_dir .. "/Makefile") == 1 or vim.fn.filereadable(file_dir .. "/makefile") == 1 then
+        vim.opt_local.makeprg = "make -C %:p:h:S %:t:r"
+        vim.cmd("make!")
+    else
+        local ft = vim.bo.filetype
+        if ft == "cpp" then
+            vim.opt_local.makeprg = "mkdir -p %:p:h/build && g++ -std=c++17 -O2 -g -DDEBUG=1 -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r"
+            vim.cmd("make!")
+        elseif ft == "c" then
+            vim.opt_local.makeprg = "mkdir -p %:p:h/build && gcc -O2 -g -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r"
+            vim.cmd("make!")
+        else
+            vim.notify("No Makefile found in " .. file_dir .. " and filetype '" .. ft .. "' is not supported for standalone compilation.", vim.log.levels.WARN)
+            return
+        end
+    end
+    vim.cmd("cwindow")
+end
+map("n", "<leader>m", make_or_compile, { desc = "Make or compile standalone file" })
 
 -- Path & Case Utilities (Consolidated under \c)
 map("n", "<leader>cp", function() vim.fn.setreg("+", vim.fn.expand("%")) end, { desc = "Copy relative path" })
@@ -385,6 +408,64 @@ require("lazy").setup(plugins, {
 
 -- Final setup
 pcall(function() require("gtd").init() end)
+
+-- Competitive Programming layout helper: | |-| layout
+-- Left pane has name.cpp, top right has name.input, bottom right has name.output.
+local function get_cp_layout_wins()
+    local layout = vim.fn.winlayout()
+    if layout[1] == "row" and #layout[2] == 2 then
+        local left = layout[2][1]
+        local right = layout[2][2]
+        if left[1] == "leaf" and right[1] == "col" and #right[2] == 2 then
+            local topright = right[2][1]
+            local bottomright = right[2][2]
+            if topright[1] == "leaf" and bottomright[1] == "leaf" then
+                return { left[2], topright[2], bottomright[2] }
+            end
+        end
+    end
+    return nil
+end
+
+local function open_cp_layout(opts)
+    local name = opts.args
+    if name == "" then
+        name = vim.fn.expand("%:p:r")
+    else
+        name = vim.fn.fnamemodify(name, ":r")
+    end
+    if name == "" then
+        name = "main"
+    end
+
+    local wins = get_cp_layout_wins()
+    if not wins then
+        -- Rebuild layout: left pane full height, right pane split horizontally
+        vim.cmd("only")
+        local win_left = vim.fn.win_getid()
+        vim.cmd("rightbelow vsplit")
+        local win_topright = vim.fn.win_getid()
+        vim.cmd("rightbelow split")
+        local win_bottomright = vim.fn.win_getid()
+        wins = { win_left, win_topright, win_bottomright }
+    end
+
+    -- Load the files in their respective windows
+    vim.fn.win_gotoid(wins[1])
+    vim.cmd("edit " .. vim.fn.fnameescape(name .. ".cpp"))
+
+    vim.fn.win_gotoid(wins[2])
+    vim.cmd("edit " .. vim.fn.fnameescape(name .. ".input"))
+
+    vim.fn.win_gotoid(wins[3])
+    vim.cmd("edit " .. vim.fn.fnameescape(name .. ".output"))
+
+    -- Return focus to the code window (left)
+    vim.fn.win_gotoid(wins[1])
+end
+
+vim.api.nvim_create_user_command("CP", open_cp_layout, { nargs = "?", complete = "file" })
+vim.api.nvim_create_user_command("CpLayout", open_cp_layout, { nargs = "?", complete = "file" })
 
 -- Markdown Export Utilities
 local function export_markdown(format)
