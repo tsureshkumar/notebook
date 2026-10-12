@@ -110,11 +110,41 @@ def main():
         context=["jwt", "token"]
     )
 
+    # Custom recognizer for local filepaths
+    filepath_regex = (
+        r"(?:"
+        r"(?i:file://)(?:localhost)?/(?:[a-zA-Z0-9_.\-~+@]+[/\\])*[a-zA-Z0-9_.\-~+@]*[a-zA-Z0-9_~+@/]"
+        r"|"
+        r"(?<![a-zA-Z0-9_\-.~+@/\\:])(?:[a-zA-Z]:[/\\](?:[a-zA-Z0-9_.\-~+@ ]+[/\\])*[a-zA-Z0-9_.\-~+@]*[a-zA-Z0-9_~+@/\\])"
+        r"|"
+        r"(?<![a-zA-Z0-9_\-.~+@/\\:])(?:\\\\[a-zA-Z0-9_\.\-]+(?:\\[a-zA-Z0-9_.\-~+@ ]+)*\\[a-zA-Z0-9_.\-~+@]*[a-zA-Z0-9_~+@\\])"
+        r"|"
+        r"(?<![a-zA-Z0-9_\-.~+@/\\:])(?:~[a-zA-Z0-9_\.\-]*(?:/[a-zA-Z0-9_.\-~+@]+)+[a-zA-Z0-9_.\-~+@]*[a-zA-Z0-9_~+@/])"
+        r"|"
+        r"(?<![a-zA-Z0-9_\-.~+@/\\:])(?:\.{1,2}/(?:[a-zA-Z0-9_.\-~+@]+/)*[a-zA-Z0-9_.\-~+@]*[a-zA-Z0-9_~+@/])"
+        r"|"
+        r"(?<![a-zA-Z0-9_\-.~+@/\\:])/(?:[a-zA-Z0-9_.\-~+@]+(?:\\ [a-zA-Z0-9_.\-~+@]+)*/)+[a-zA-Z0-9_.\-~+@]*[a-zA-Z0-9_~+@/]"
+        r")"
+    )
+
+    filepath_pattern = Pattern(
+        name="filepath_pattern",
+        regex=filepath_regex,
+        score=0.95
+    )
+
+    filepath_recognizer = PatternRecognizer(
+        supported_entity="FILE_PATH",
+        patterns=[filepath_pattern],
+        context=["path", "file", "directory", "folder"]
+    )
+
     analyzer = AnalyzerEngine()
     analyzer.registry.add_recognizer(bearer_recognizer)
     analyzer.registry.add_recognizer(key_recognizer)
     analyzer.registry.add_recognizer(aws_recognizer)
     analyzer.registry.add_recognizer(jwt_recognizer)
+    analyzer.registry.add_recognizer(filepath_recognizer)
 
     anonymizer = AnonymizerEngine()
     results = analyzer.analyze(text=text, language='en')
@@ -122,7 +152,7 @@ def main():
     # Operator Configuration
     operators = {"DEFAULT": OperatorConfig(args.mode, {})}
     if args.mode == "mask":
-        operators = {"DEFAULT": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 15})}
+        operators = {"DEFAULT": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 15, "from_end": True})}
 
     # Apply and Save
     print("Anonymizing...", file=sys.stderr)
