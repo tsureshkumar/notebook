@@ -129,10 +129,13 @@ Emacs config in `emacs/` — Spacemacs, CEDET, language-specific configs (Haskel
 
 ---
 
-## Snippets
+## Snippets & Documentation
 
-- **neosnippets/**: cpp.snip, python.snip
-- **vim-neosnippets/**: cpp.snip (vim-snippets compatible)
+- **vim-neosnippets/**: `cpp.snippets`, `java.snippets` (LuaSnip SnipMate format)
+- **docs/**:
+  - [Java Development Guide](docs/java_guide.md): On-demand Java workflow, build/run keymaps, boilerplate generation, and snippet index
+  - [Neovim Org Mode Cheatsheet](docs/nvim_org_cheatsheet.md)
+  - [Org GTD Workflow Guide](docs/org_gtd_workflow_guide.md)
 
 ---
 

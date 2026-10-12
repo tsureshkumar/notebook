@@ -60,34 +60,134 @@ map({ "n", "v" }, "j", "gj")
 -- Systems Engineering & Tools
 map("n", "<leader>d", ":!d2 --watch %<CR>", { desc = "D2: Live Browser Preview" })
 map("n", "<leader>l", ":.lua<CR>", { desc = "Execute current line as Lua" })
-map("n", "]q", ":cnext<cr>zz")
-map("n", "[q", ":cprev<cr>zz")
+map("n", "]q", ":cnext<cr>zz", { desc = "Next Quickfix Item" })
+map("n", "[q", ":cprev<cr>zz", { desc = "Previous Quickfix Item" })
+map("n", "]d", vim.diagnostic.goto_next, { desc = "Next Diagnostic" })
+map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous Diagnostic" })
+map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Line Diagnostics" })
+map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Buffer Diagnostics List" })
 map("n", "<F7>", ":make!<cr>", { desc = "Run Make" })
 map("n", "<S-F7>", ":make clean all<cr>", { desc = "Make Clean All" })
-map("n", "<F5>", ":!cd %:p:h && touch %:t:r.input && time ./build/%:t:r < %:t:r.input | tee %:t:r.output<cr>", { desc = "Run with input and tee output" })
-map("n", "<leader>r", ":!cd %:p:h && touch %:t:r.input && time ./build/%:t:r < %:t:r.input | tee %:t:r.output<cr>", { desc = "Run with input and tee output" })
+local function get_java_info()
+    local file_path = vim.fn.expand("%:p")
+    local file_dir = vim.fn.expand("%:p:h")
+    local stem = vim.fn.expand("%:t:r")
+
+    -- Detect package name from buffer lines
+    local pkg = nil
+    local lines = vim.api.nvim_buf_get_lines(0, 0, 50, false)
+    for _, line in ipairs(lines) do
+        local p = line:match("^%s*package%s+([%w_.]+)%s*;")
+        if p then
+            pkg = p
+            break
+        end
+    end
+
+    local full_class_name = pkg and (pkg .. "." .. stem) or stem
+
+    -- Detect project root
+    local project_root = vim.fs.root(file_path, { ".classpath", ".project", "pom.xml", "build.gradle", ".git" })
+    if not project_root and pkg then
+        local segments = 0
+        for _ in pkg:gmatch("[^.]+") do segments = segments + 1 end
+        local curr = file_dir
+        for _ = 1, segments do curr = vim.fn.fnamemodify(curr, ":h") end
+        project_root = curr
+    end
+    project_root = project_root or file_dir
+
+    -- Detect source directory
+    local src_dir = project_root
+    if vim.fn.isdirectory(project_root .. "/src") == 1 then
+        src_dir = project_root .. "/src"
+    end
+
+    -- Detect output directory (bin for Eclipse, target/classes for Maven, build for others)
+    local out_dir = project_root .. "/build"
+    if vim.fn.isdirectory(project_root .. "/bin") == 1 or vim.fn.filereadable(project_root .. "/.classpath") == 1 then
+        out_dir = project_root .. "/bin"
+    elseif vim.fn.isdirectory(project_root .. "/target/classes") == 1 or vim.fn.filereadable(project_root .. "/pom.xml") == 1 then
+        out_dir = project_root .. "/target/classes"
+    end
+
+    return {
+        file_path = file_path,
+        file_dir = file_dir,
+        stem = stem,
+        pkg = pkg,
+        full_class_name = full_class_name,
+        project_root = project_root,
+        src_dir = src_dir,
+        out_dir = out_dir,
+    }
+end
+
+local function run_target()
+    local ft = vim.bo.filetype
+    local dir = vim.fn.shellescape(vim.fn.expand("%:p:h"))
+    local stem = vim.fn.expand("%:t:r")
+    if ft == "java" then
+        local jinfo = get_java_info()
+        vim.cmd(string.format("!cd %s && touch %s.input && time java -cp %s %s < %s.input | tee %s.output",
+            vim.fn.shellescape(jinfo.file_dir),
+            stem,
+            vim.fn.shellescape(jinfo.out_dir),
+            jinfo.full_class_name,
+            stem,
+            stem
+        ))
+    else
+        vim.cmd(string.format("!cd %s && touch %s.input && time ./build/%s < %s.input | tee %s.output", dir, stem, stem, stem, stem))
+    end
+end
+map("n", "<F5>", run_target, { desc = "Run with input and tee output" })
+map("n", "<leader>r", run_target, { desc = "Run with input and tee output" })
 
 local function make_or_compile()
     local file_dir = vim.fn.expand("%:p:h")
+    local ft = vim.bo.filetype
+    local target_name = vim.fn.expand("%:t")
+
     if vim.fn.filereadable(file_dir .. "/Makefile") == 1 or vim.fn.filereadable(file_dir .. "/makefile") == 1 then
         vim.opt_local.makeprg = "make -C %:p:h:S %:t:r"
-        vim.cmd("make!")
+    elseif ft == "cpp" then
+        vim.opt_local.makeprg =
+        "mkdir -p %:p:h/build && g++ -std=c++17 -O2 -g -DDEBUG=1 -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r"
+    elseif ft == "c" then
+        vim.opt_local.makeprg =
+        "mkdir -p %:p:h/build && gcc -O2 -g -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r"
+    elseif ft == "java" then
+        local jinfo = get_java_info()
+        vim.opt_local.errorformat = "%f:%l: error: %m,%f:%l: warning: %m,%f:%l: %m,%-G%.%#"
+        vim.opt_local.makeprg = string.format("mkdir -p %s && javac -d %s -sourcepath %s -cp %s %s",
+            vim.fn.shellescape(jinfo.out_dir),
+            vim.fn.shellescape(jinfo.out_dir),
+            vim.fn.shellescape(jinfo.src_dir),
+            vim.fn.shellescape(jinfo.out_dir),
+            vim.fn.shellescape(jinfo.file_path)
+        )
     else
-        local ft = vim.bo.filetype
-        if ft == "cpp" then
-            vim.opt_local.makeprg = "mkdir -p %:p:h/build && g++ -std=c++17 -O2 -g -DDEBUG=1 -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r"
-            vim.cmd("make!")
-        elseif ft == "c" then
-            vim.opt_local.makeprg = "mkdir -p %:p:h/build && gcc -O2 -g -Wall -pedantic -Werror -Wreturn-type -Wl,-stack_size,0x10000000 % -lm -o %:p:h/build/%:t:r"
-            vim.cmd("make!")
-        else
-            vim.notify("No Makefile found in " .. file_dir .. " and filetype '" .. ft .. "' is not supported for standalone compilation.", vim.log.levels.WARN)
-            return
-        end
+        vim.notify(
+        "No Makefile found in " ..
+        file_dir .. " and filetype '" .. ft .. "' is not supported for standalone compilation.", vim.log.levels.WARN)
+        return
     end
-    vim.cmd("cwindow")
+
+    vim.cmd("make!")
+
+    local qf = vim.fn.getqflist()
+    if #qf > 0 then
+        vim.cmd("copen")
+    else
+        vim.notify("✓ Build successful: " .. target_name, vim.log.levels.INFO)
+    end
 end
 map("n", "<leader>m", make_or_compile, { desc = "Make or compile standalone file" })
+map("n", "<leader>co", function()
+    local win = vim.fn.getqflist({ winid = 0 }).winid
+    if win > 0 then vim.cmd("cclose") else vim.cmd("copen") end
+end, { desc = "Toggle compiler output / quickfix window" })
 
 -- Path & Case Utilities (Consolidated under \c)
 map("n", "<leader>cp", function() vim.fn.setreg("+", vim.fn.expand("%")) end, { desc = "Copy relative path" })
@@ -224,9 +324,10 @@ local plugins = {
         dependencies = { "nvim-lua/plenary.nvim" },
         config = true,
         keys = {
-            { "<leader>Tf", "<cmd>Telescope find_files<cr>", desc = "Files" },
-            { "<leader>Tg", "<cmd>Telescope live_grep<cr>",  desc = "Grep" },
-            { "<leader>Tb", "<cmd>Telescope buffers<cr>",    desc = "Buffers" },
+            { "<leader>Tf", "<cmd>Telescope find_files<cr>",  desc = "Files" },
+            { "<leader>Tg", "<cmd>Telescope live_grep<cr>",   desc = "Grep" },
+            { "<leader>Tb", "<cmd>Telescope buffers<cr>",     desc = "Buffers" },
+            { "<leader>Td", "<cmd>Telescope diagnostics<cr>", desc = "Diagnostics" },
         },
     },
     { "stevearc/oil.nvim",             opts = {},                                                               keys = { { "-", "<cmd>Oil<cr>" } } },
@@ -255,7 +356,7 @@ local plugins = {
         build = ":TSUpdate",
         config = function()
             require("nvim-treesitter.config").setup({
-                ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "org", "bash", "rust", "d2", "quint" },
+                ensure_installed = { "c", "cpp", "java", "lua", "python", "javascript", "typescript", "go", "scala", "markdown", "org", "bash", "rust", "d2", "quint", "terraform", "hcl" },
                 highlight = { enable = true, additional_vim_regex_highlighting = { "org" } },
             })
         end,
@@ -270,7 +371,7 @@ local plugins = {
         config = function()
             require("mason").setup()
             require("mason-lspconfig").setup({
-                ensure_installed = { "clangd", "lua_ls", "pyright", "ts_ls", "gopls" },
+                ensure_installed = { "clangd", "lua_ls", "pyright", "ts_ls", "gopls", "terraformls" },
                 handlers = {
                     function(server_name)
                         require("lspconfig")[server_name].setup({
@@ -310,6 +411,8 @@ local plugins = {
             vim.keymap.set("n", "<leader>fg", fzf.live_grep, { desc = "Grep" })
             vim.keymap.set("n", "<leader>fb", fzf.buffers, { desc = "Buffers" })
             vim.keymap.set("n", "<leader>fw", fzf.grep_cword, { desc = "Word under cursor" })
+            vim.keymap.set("n", "<leader>fd", fzf.diagnostics_document, { desc = "Buffer Diagnostics" })
+            vim.keymap.set("n", "<leader>fD", fzf.diagnostics_workspace, { desc = "Workspace Diagnostics" })
         end,
     },
 
@@ -335,7 +438,7 @@ local plugins = {
             })
 
             -- Map Ctrl+k to expand or jump
-            vim.keymap.set({"i", "s"}, "<C-k>", function()
+            vim.keymap.set({ "i", "s" }, "<C-k>", function()
                 if ls.expand_or_jumpable() then
                     ls.expand_or_jump()
                 end
@@ -352,7 +455,7 @@ local plugins = {
             })
         end
     },
-    { "stevearc/conform.nvim",        opts = { formatters_by_ft = { lua = { "stylua" }, python = { "black" }, javascript = { "prettier" }, c = { "clang-format" } }, format_on_save = { timeout_ms = 500, lsp_fallback = true } } },
+    { "stevearc/conform.nvim",        opts = { formatters_by_ft = { lua = { "stylua" }, python = { "black" }, javascript = { "prettier" }, c = { "clang-format" }, terraform = { "terraform_fmt" }, hcl = { "terraform_fmt" } }, format_on_save = { timeout_ms = 500, lsp_fallback = true } } },
     {
         "mfussenegger/nvim-dap",
         dependencies = { "rcarriga/nvim-dap-ui", "nvim-neotest/nvim-nio", "jay-babu/mason-nvim-dap.nvim" },
@@ -382,14 +485,14 @@ local plugins = {
         end
     },
     { "scalameta/nvim-metals",        dependencies = { "nvim-lua/plenary.nvim" } },
-    { "epwalsh/obsidian.nvim",        ft = "markdown",                                                                                                                                                                            opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
+    { "epwalsh/obsidian.nvim",        ft = "markdown",                                                                                                                                                                                                                                        opts = { workspaces = { { name = "vault", path = "~/vault" } } } },
     { "lervag/vimtex",                ft = "tex" },
-    { "zbirenbaum/copilot.lua",       cmd = "Copilot",                                                                                                                                                                            opts = { suggestion = { enabled = true } } },
     { "lewis6991/gitsigns.nvim",      opts = {} },
     { "tpope/vim-fugitive" },
-    { "iamcco/markdown-preview.nvim", ft = "markdown",                                                                                                                                                                            build = "cd app && npm install" },
-    { "terrastruct/d2-vim",           ft = { "d2" },                                                                                                                                                                              config = function() vim.g.d2_ascii_preview = 1 end },
-    { "rmagatti/auto-session",        lazy = false,                                                                                                                                                                               opts = { auto_restore_enabled = true } },
+    { "iamcco/markdown-preview.nvim", ft = "markdown",                                                                                                                                                                                                                                        build = "cd app && npm install" },
+    { "terrastruct/d2-vim",           ft = { "d2" },                                                                                                                                                                                                                                          config = function() vim.g.d2_ascii_preview = 1 end },
+    { "rmagatti/auto-session",        lazy = false,                                                                                                                                                                                                                                           opts = { auto_restore_enabled = true } },
+    { "mfussenegger/nvim-jdtls",      lazy = true },
 }
 
 -- If dev.lua exists and returned a table, merge it into the plugins list
@@ -450,9 +553,14 @@ local function open_cp_layout(opts)
         wins = { win_left, win_topright, win_bottomright }
     end
 
+    local ext = "cpp"
+    if vim.bo.filetype == "java" or opts.args:match("%.java$") then
+        ext = "java"
+    end
+
     -- Load the files in their respective windows
     vim.fn.win_gotoid(wins[1])
-    vim.cmd("edit " .. vim.fn.fnameescape(name .. ".cpp"))
+    vim.cmd("edit " .. vim.fn.fnameescape(name .. "." .. ext))
 
     vim.fn.win_gotoid(wins[2])
     vim.cmd("edit " .. vim.fn.fnameescape(name .. ".input"))
@@ -495,7 +603,7 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 })
 
-vim.filetype.add({ extension = { d2 = "d2", qnt = "quint" } })
+vim.filetype.add({ extension = { d2 = "d2", qnt = "quint", tofu = "terraform", tfvars = "terraform", tf = "terraform" } })
 local ok, ab = pcall(require, "agent-bridge")
 if ok then ab.setup({ host = "127.0.0.1", port = 7777, enable_shell = true }) end
 vim.api.nvim_create_autocmd("TextYankPost", { callback = function() vim.highlight.on_yank() end })
