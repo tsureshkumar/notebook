@@ -159,12 +159,12 @@ call plug#begin('~/.vim/plugged')
     Plug 'rust-lang/rust.vim'
     Plug 'fatih/vim-go'
     Plug 'elmcast/elm-vim'
+    Plug 'hashivim/vim-terraform'
     
     " Utilities
     Plug 'mbbill/undotree'
     Plug 'christoomey/vim-tmux-navigator'
     Plug 'machakann/vim-highlightedyank'
-    Plug 'github/copilot.vim'
     Plug 'lervag/wiki.vim'
     Plug 'junegunn/vim-easy-align'
     Plug 'lervag/vimtex'
@@ -306,7 +306,12 @@ augroup global_cmds
     autocmd InsertEnter * set norelativenumber
     autocmd InsertLeave * set relativenumber
     autocmd BufRead,BufNewFile *.h,*.c set filetype=c.doxygen
+    autocmd BufRead,BufNewFile *.tofu,*.tofuvars set filetype=terraform
 augroup END
+
+" Terraform / Tofu configuration
+let g:terraform_fmt_on_save = 1
+let g:terraform_align = 1
 
 " Load work specific settings
 if filereadable(expand("~/my/notebook-office/dots/dot-vimrc"))
